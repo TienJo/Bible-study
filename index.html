@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>靈修讀經筆記 · Devotional Bible</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #fbf9f5;
+      color: #2c2825;
+    }
+    .font-serif-tc {
+      font-family: 'Noto Serif TC', serif;
+    }
+    .verse-highlight-yellow { background-color: #fef08a; border-radius: 4px; padding: 1px 3px; }
+    .verse-highlight-green { background-color: #bbf7d0; border-radius: 4px; padding: 1px 3px; }
+    .verse-highlight-blue { background-color: #bfdbfe; border-radius: 4px; padding: 1px 3px; }
+    .verse-highlight-pink { background-color: #fbcfe8; border-radius: 4px; padding: 1px 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header Navigation -->
+  <header class="border-b border-stone-200 bg-white/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="book-open" class="w-6 h-6 text-amber-700"></i>
+        <span class="font-serif-tc font-bold text-xl text-stone-800 tracking-wide">靜沐靈光</span>
+        <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">靈修筆記</span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Sync Status -->
+        <div id="syncBadge" class="hidden sm:flex items-center text-xs text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full">
+          <i data-lucide="cloud-off" class="w-3.5 h-3.5 mr-1 text-stone-400" id="syncIcon"></i>
+          <span id="syncText">本地模式</span>
+        </div>
+
+        <!-- Google Drive Settings / Auth Button -->
+        <button onclick="openAuthModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-stone-300 hover:bg-stone-50 transition text-sm text-stone-700 font-medium">
+          <i data-lucide="settings" class="w-4 h-4 text-stone-500"></i>
+          <span id="authBtnLabel">Google 連線設定</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-6">
+
+    <!-- Left Column: Reading Plan & Navigation (4 cols) -->
+    <div class="md:col-span-4 space-y-6">
+      
+      <!-- Reading Plan Selector -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-serif-tc font-bold text-base text-stone-800 flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-4 h-4 text-amber-700"></i> 每日靈修進度
+          </h2>
+          <span id="currentProgressText" class="text-xs text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded">第 1 / 30 天</span>
+        </div>
+        
+        <p class="text-xs text-stone-500 mb-4">計畫：30天盼望與信心同行靈修</p>
+
+        <!-- Day Selector Grid -->
+        <div class="grid grid-cols-6 gap-1.5 max-h-48 overflow-y-auto pr-1" id="dayButtonsContainer">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
+          <button id="markCompleteBtn" onclick="toggleTodayCompletion()" class="w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border transition">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span id="markCompleteBtnText">標記今日已完成</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Situation Bookmarks錦囊庫 -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-serif-tc font-bold text-base text-stone-800 flex items-center gap-1.5">
+            <i data-lucide="compass" class="w-4 h-4 text-amber-700"></i> 情境守護錦囊
+          </h2>
+          <span id="bookmarkCount" class="text-xs text-stone-400">0 則</span>
+        </div>
+        <p class="text-xs text-stone-500 mb-3">當你面臨不同處境時，重溫帶來安慰的經文：</p>
+        
+        <!-- Filter pills -->
+        <div class="flex flex-wrap gap-1.5 mb-3" id="situationFilterPills">
+          <button onclick="filterBookmarks('all')" class="text-xs px-2.5 py-1 rounded-full bg-stone-800 text-white font-medium pill-filter" data-tag="all">全部</button>
+          <button onclick="filterBookmarks('焦慮不安')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="焦慮不安">焦慮不安</button>
+          <button onclick="filterBookmarks('缺乏信心')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="缺乏信心">缺乏信心</button>
+          <button onclick="filterBookmarks('尋求引導')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="尋求引導">尋求引導</button>
+          <button onclick="filterBookmarks('感恩讚美')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="感恩讚美">感恩讚美</button>
+        </div>
+
+        <div id="bookmarksList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+          <!-- Dynamic Bookmarks -->
+          <p class="text-xs text-stone-400 text-center py-4">尚未收藏情境經文，點選經文卡片右上角的「收藏錦囊」即可加入。</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Scripture Reader, Highlighter & Notes (8 cols) -->
+    <div class="md:col-span-8 space-y-6">
+
+      <!-- Scripture Card -->
+      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm relative">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-4 mb-5">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="readingDayBadge" class="text-xs font-semibold px-2 py-0.5 bg-amber-100 text-amber-900 rounded">第 1 天經文</span>
+              <h1 id="scriptureRef" class="font-serif-tc font-bold text-2xl text-stone-900">約翰福音 14:27</h1>
+            </div>
+            <p id="scriptureTheme" class="text-xs text-stone-500 mt-1">主題：耶穌所賜出人意外的平安</p>
+          </div>
+
+          <!-- Action buttons for Scripture -->
+          <div class="flex items-center space-x-2">
+            <!-- Bookmark trigger -->
+            <button onclick="openBookmarkModal()" title="加入情境錦囊" class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition flex items-center gap-1 text-xs">
+              <i data-lucide="bookmark-plus" class="w-4 h-4 text-amber-600"></i>
+              <span class="hidden sm:inline">收藏錦囊</span>
+            </button>
+            <!-- Share trigger -->
+            <button onclick="openShareModal()" title="分享經文" class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition flex items-center gap-1 text-xs">
+              <i data-lucide="share-2" class="w-4 h-4 text-stone-600"></i>
+              <span class="hidden sm:inline">分享</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Highlight Toolbar -->
+        <div class="flex items-center justify-between text-xs text-stone-500 bg-stone-50 rounded-xl p-2.5 mb-5 border border-stone-100">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="highlighter" class="w-4 h-4 text-stone-400"></i>
+            <span>點擊經文節數標記高亮色：</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="setActiveHighlightColor('yellow')" class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-yellow-400 hover:scale-110 transition active-color-btn" data-color="yellow"></button>
+            <button onclick="setActiveHighlightColor('green')" class="w-5 h-5 rounded-full bg-green-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="green"></button>
+            <button onclick="setActiveHighlightColor('blue')" class="w-5 h-5 rounded-full bg-blue-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="blue"></button>
+            <button onclick="setActiveHighlightColor('pink')" class="w-5 h-5 rounded-full bg-pink-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="pink"></button>
+            <button onclick="setActiveHighlightColor('none')" class="text-xs text-stone-400 hover:text-stone-700 ml-1">清除色</button>
+          </div>
+        </div>
+
+        <!-- Scripture Content Box -->
+        <div id="scriptureTextContainer" class="font-serif-tc text-lg leading-relaxed text-stone-800 space-y-3 min-h-[140px] py-2">
+          <!-- Verses will be injected here with interactive click for highlighting -->
+          <div class="flex items-center justify-center text-stone-400 py-10 space-x-2">
+            <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
+            <span>經文載入中...</span>
+          </div>
+        </div>
+
+        <!-- API Source Credit -->
+        <div class="mt-6 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
+          <span>譯本：和合本繁體 (CUV)</span>
+          <span class="hover:underline cursor-pointer" onclick="reloadCurrentScripture()">重新載入經文</span>
+        </div>
+      </div>
+
+      <!-- Reflection & Note Pad -->
+      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="pen-tool" class="w-4 h-4 text-amber-700"></i>
+            <h2 class="font-serif-tc font-bold text-lg text-stone-800">今日靈修反思與筆記</h2>
+          </div>
+          <span id="noteSavedStatus" class="text-xs text-stone-400">自動即時儲存</span>
+        </div>
+
+        <p class="text-xs text-stone-500">
+          寫下經文給你的感動、今日禱告，或是如何將這句經文應用在生活中。
+        </p>
+
+        <textarea 
+          id="dayNoteInput" 
+          rows="5" 
+          oninput="handleNoteInput()"
+          placeholder="在這段經文中，我看見神對我說了什麼？在面對日常生活的考驗時，我可以如何回應？"
+          class="w-full p-3.5 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-stone-50/50 transition font-sans"
+        ></textarea>
+
+        <div class="flex justify-between items-center text-xs text-stone-400 pt-1">
+          <span>筆記將連同高亮與進度同步保存</span>
+          <button onclick="triggerManualSync()" class="text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 手動同步到雲端
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal: Google Client ID Connection Settings -->
+  <div id="authModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
+          <i data-lucide="cloud" class="w-5 h-5 text-amber-700"></i> Google 雲端連線設定
+        </h3>
+        <button onclick="closeAuthModal()" class="text-stone-400 hover:text-stone-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-stone-600 leading-relaxed">
+        本應用程式採用「自帶雲端 (BYOS)」模式，筆記與記錄直接儲存在您 Google 雲端硬碟的專屬應用空間（AppData），不會經過任何第三方伺服器。
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-stone-700 mb-1">Google OAuth 2.0 Client ID</label>
+          <input 
+            type="text" 
+            id="clientIdInput" 
+            value="865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com" 
+            placeholder="例如: 123456789-xxxxxx.apps.googleusercontent.com"
+            class="w-full p-2.5 text-xs rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-mono"
+          />
+        </div>
+
+        <div class="bg-amber-50 rounded-lg p-3 text-[11px] text-amber-900 leading-relaxed border border-amber-200/60">
+          <strong>如何取得 Client ID？</strong>
+          <ol class="list-decimal list-inside space-y-0.5 mt-1 text-amber-800">
+            <li>前往 Google Cloud Console 建立專案並啟用 Google Drive API。</li>
+            <li>在「OAuth 同意畫面」選擇外部並儲存。</li>
+            <li>「憑證」新增「OAuth 2.0 用戶端 ID」，應用程式類型選擇「網頁應用程式」。</li>
+            <li>在「已授權的 JavaScript 來源」填入你的 GitHub Pages 網址（例如：<code>https://username.github.io</code>）。</li>
+          </ol>
+        </div>
+
+        <!-- Connection actions -->
+        <div class="pt-2 space-y-2">
+          <button onclick="saveAndSignInGoogle()" class="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> 儲存 Client ID 並登入 Google
+          </button>
+          <button id="disconnectBtn" onclick="disconnectGoogle()" class="w-full py-2 border border-rose-200 text-rose-700 hover:bg-rose-50 font-medium text-xs rounded-lg transition hidden">
+            中斷 Google 帳號連線
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Bookmark with Situation Tagging -->
+  <div id="bookmarkModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
+          <i data-lucide="bookmark-check" class="w-5 h-5 text-amber-700"></i> 加入情境錦囊
+        </h3>
+        <button onclick="closeBookmarkModal()" class="text-stone-400 hover:text-stone-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="bg-stone-50 p-3 rounded-lg border border-stone-200 text-xs text-stone-700 font-serif-tc" id="bookmarkPreviewRef">
+        約翰福音 14:27
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-stone-700 mb-1.5">選擇在遇到怎樣的困境或時刻可以重溫：</label>
+        <div class="grid grid-cols-2 gap-2 text-xs" id="tagSelectionGroup">
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="焦慮不安" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>😰 焦慮不安時</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="缺乏信心" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>🛡️ 缺乏信心時</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="尋求引導" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>🧭 面對重大抉擇時</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="人際衝突" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>🤝 人際受傷包容時</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="身體軟弱" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>🩹 身心疲憊低谷時</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
+            <input type="checkbox" value="感恩讚美" class="situation-cb text-amber-600 rounded focus:ring-0">
+            <span>✨ 感恩與數算恩典</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-stone-700 mb-1">自訂標籤或一句備忘心得：</label>
+        <input type="text" id="customTagNote" placeholder="例如：每次面試前讀這句" class="w-full p-2 text-xs rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600">
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button onclick="saveBookmark()" class="flex-1 py-2.5 bg-amber-800 hover:bg-amber-900 text-white font-medium text-xs rounded-lg transition">
+          儲存到情境錦囊
+        </button>
+        <button onclick="closeBookmarkModal()" class="px-4 py-2.5 border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs rounded-lg transition">
+          取消
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Share Scripture -->
+  <div id="shareModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
+          <i data-lucide="share" class="w-5 h-5 text-amber-700"></i> 分享經文祝福
+        </h3>
+        <button onclick="closeShareModal()" class="text-stone-400 hover:text-stone-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Preview Card -->
+      <div id="shareCardPreview" class="p-5 rounded-xl bg-stone-100 border border-stone-200 text-stone-800 font-serif-tc text-sm leading-relaxed space-y-3">
+        <div id="shareTextContent">經文內容...</div>
+        <div class="text-right text-xs text-amber-900 font-bold" id="shareRefContent">—— 約翰福音 14:27</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button onclick="copyShareText()" class="py-2.5 px-3 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-1.5">
+          <i data-lucide="copy" class="w-4 h-4"></i> 複製經文文字
+        </button>
+        <button onclick="nativeShare()" class="py-2.5 px-3 border border-stone-300 hover:bg-stone-50 text-stone-700 font-medium text-xs rounded-lg transition flex items-center justify-center gap-1.5">
+          <i data-lucide="send" class="w-4 h-4"></i> 呼叫系統分享
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-auto py-6 border-t border-stone-200 text-center text-xs text-stone-400">
+    靜沐靈光 · 基於聖經公版譯本與 Google Drive AppData BYOS 架構
+  </footer>
+
+  <script>
+    /* ========================================================
+       1. 30 天靈修經文計畫預設清單 (可擴充)
+       ======================================================== */
+    const DEVOTIONAL_PLAN = [
+      { day: 1, ref: "John 14:27", zhRef: "約翰福音 14:27", theme: "耶穌所賜出人意外的平安" },
+      { day: 2, ref: "Philippians 4:6-7", zhRef: "腓立比書 4:6-7", theme: "應當一無挂慮，藉禱告交託" },
+      { day: 3, ref: "Isaiah 41:10", zhRef: "以賽亞書 41:10", theme: "不要懼怕，因為我與你同在" },
+      { day: 4, ref: "Psalm 23:1-6", zhRef: "詩篇 23:1-6", theme: "耶和華是我的牧者，我必不致缺乏" },
+      { day: 5, ref: "Proverbs 3:5-6", zhRef: "箴言 3:5-6", theme: "專心仰賴耶和華，不倚靠自己的聰明" },
+      { day: 6, ref: "Matthew 11:28-30", zhRef: "馬太福音 11:28-30", theme: "凡勞苦擔重擔的人，到我這裡得安息" },
+      { day: 7, ref: "Romans 8:28", zhRef: "羅馬書 8:28", theme: "萬事都互相效力，叫愛神的人得益處" },
+      { day: 8, ref: "Joshua 1:9", zhRef: "約書亞記 1:9", theme: "你當剛強壯膽，不要懼怕也不要驚惶" },
+      { day: 9, ref: "Psalm 46:1-3", zhRef: "詩篇 46:1-3", theme: "神是我們的避難所，是我們的力量" },
+      { day: 10, ref: "Jeremiah 29:11", zhRef: "耶利米書 29:11", theme: "賜平安的意念，叫你們末後有指望" },
+      { day: 11, ref: "Hebrews 11:1", zhRef: "希伯來書 11:1", theme: "信就是所望之事的實底" },
+      { day: 12, ref: "2 Corinthians 12:9", zhRef: "哥林多後書 12:9", theme: "我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全" },
+      { day: 13, ref: "Psalm 121:1-8", zhRef: "詩篇 121:1-8", theme: "我的幫助從造天地的耶和華而來" },
+      { day: 14, ref: "Lamentations 3:22-23", zhRef: "耶利米哀歌 3:22-23", theme: "每早晨，這都是新的；你的誠實極其廣大" },
+      { day: 15, ref: "Psalm 27:1", zhRef: "詩篇 27:1", theme: "耶和華是我的亮光，是我的拯救，我還怕誰呢" },
+      { day: 16, ref: "Romans 12:2", zhRef: "羅馬書 12:2", theme: "心意更新而變化，察驗何為神的善良純全" },
+      { day: 17, ref: "Galatians 5:22-23", zhRef: "加拉太書 5:22-23", theme: "聖靈所結的果子：仁愛、喜樂、和平" },
+      { day: 18, ref: "Psalm 91:1-4", zhRef: "詩篇 91:1-4", theme: "住在至高者隱密處的，必住在全能者的蔭下" },
+      { day: 19, ref: "Matthew 6:33-34", zhRef: "馬太福音 6:33-34", theme: "先求祂的國和祂的義，不要為明天憂慮" },
+      { day: 20, ref: "Isaiah 40:31", zhRef: "以賽亞書 40:31", theme: "等候耶和華的必重新得力，如鷹展翅上騰" },
+      { day: 21, ref: "James 1:2-4", zhRef: "雅各書 1:2-4", theme: "信心經過試驗就生忍耐" },
+      { day: 22, ref: "Ephesians 6:10-18", zhRef: "以弗所書 6:10-13", theme: "穿戴神所賜的全副軍裝" },
+      { day: 23, ref: "Psalm 103:1-5", zhRef: "詩篇 103:1-5", theme: "我的心哪，你要稱頌耶和華，不可忘記祂的一切恩惠" },
+      { day: 24, ref: "1 Thessalonians 5:16-18", zhRef: "帖撒羅尼迦前書 5:16-18", theme: "要常常喜樂，不住的禱告，凡事謝恩" },
+      { day: 25, ref: "Colossians 3:12-14", zhRef: "歌羅西書 3:12-14", theme: "存憐憫、恩慈、謙虛、溫柔、忍耐的心" },
+      { day: 26, ref: "Psalm 119:105", zhRef: "詩篇 119:105", theme: "你的話是我腳前的燈，是我路上的光" },
+      { day: 27, ref: "1 Peter 5:7", zhRef: "彼得前書 5:7", theme: "你們要將一切的憂慮卸給神，因為祂顧念你們" },
+      { day: 28, ref: "John 15:5", zhRef: "約翰福音 15:5", theme: "我是葡萄樹，你們是枝子，常在我裡面的，我也常在他裡面" },
+      { day: 29, ref: "Micah 6:8", zhRef: "彌迦書 6:8", theme: "行公義，好憐憫，存謙卑的心，與你的神同行" },
+      { day: 30, ref: "Revelation 21:4", zhRef: "啟示錄 21:4", theme: "神要擦去他們一切的眼淚，不再有死亡，也不再有悲哀哭號" }
+    ];
+
+    /* ========================================================
+       2. 資料模型與應用程式狀態
+       ======================================================== */
+    const STORAGE_KEY = "devotional_bible_app_data_v1";
+    const CONFIG_KEY = "devotional_google_config";
+
+    let appData = {
+      version: "1.0",
+      currentDay: 1,
+      completedDays: [],
+      highlights: {}, // key: "day-1-v1", value: "yellow"
+      notes: {},       // key: "day-1", value: "筆記文字"
+      bookmarks: []    // items: { id, ref, zhRef, text, tags: [], customNote, date }
+    };
+
+    let activeColor = "yellow";
+    let tokenClient = null;
+    let accessToken = null;
+    let driveFileId = null;
+    let currentRawVerseData = null;
+
+    /* ========================================================
+       3. 初始化載入
+       ======================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      loadLocalData();
+      renderDayButtons();
+      renderBookmarksList('all');
+      loadDayScripture(appData.currentDay);
+      initGoogleTokenClient();
+    });
+
+    const DEFAULT_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
+
+    function loadLocalData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appData = Object.assign(appData, JSON.parse(saved));
+        } catch (e) {
+          console.error("載入本地資料失敗", e);
+        }
+      }
+      let config = localStorage.getItem(CONFIG_KEY);
+      let activeClientId = DEFAULT_CLIENT_ID;
+      if (config) {
+        try {
+          const cfg = JSON.parse(config);
+          if (cfg.clientId) {
+            activeClientId = cfg.clientId;
+          }
+        } catch (e) {}
+      } else {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify({ clientId: DEFAULT_CLIENT_ID }));
+      }
+      document.getElementById("clientIdInput").value = activeClientId;
+    }
+
+    function saveLocalData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      scheduleAutoCloudSync();
+    }
+
+    /* ========================================================
+       4. 讀經計畫介面渲染
+       ======================================================== */
+    function renderDayButtons() {
+      const container = document.getElementById("dayButtonsContainer");
+      container.innerHTML = "";
+
+      DEVOTIONAL_PLAN.forEach(item => {
+        const btn = document.createElement("button");
+        const isCurrent = item.day === appData.currentDay;
+        const isDone = appData.completedDays.includes(item.day);
+
+        let cls = "text-xs h-8 rounded-lg font-medium transition flex items-center justify-center ";
+        if (isCurrent) {
+          cls += "bg-amber-800 text-white shadow-sm ring-2 ring-amber-700/50 ";
+        } else if (isDone) {
+          cls += "bg-emerald-100 text-emerald-800 border border-emerald-300 ";
+        } else {
+          cls += "bg-stone-100 text-stone-700 hover:bg-stone-200 ";
+        }
+
+        btn.className = cls;
+        btn.innerText = item.day;
+        btn.onclick = () => selectDay(item.day);
+        container.appendChild(btn);
+      });
+
+      document.getElementById("currentProgressText").innerText = `第 ${appData.currentDay} / 30 天`;
+      updateCompletionButtonState();
+    }
+
+    function selectDay(day) {
+      appData.currentDay = day;
+      saveLocalData();
+      renderDayButtons();
+      loadDayScripture(day);
+    }
+
+    function toggleTodayCompletion() {
+      const day = appData.currentDay;
+      const idx = appData.completedDays.indexOf(day);
+      if (idx > -1) {
+        appData.completedDays.splice(idx, 1);
+      } else {
+        appData.completedDays.push(day);
+      }
+      saveLocalData();
+      renderDayButtons();
+    }
+
+    function updateCompletionButtonState() {
+      const isDone = appData.completedDays.includes(appData.currentDay);
+      const btn = document.getElementById("markCompleteBtn");
+      const label = document.getElementById("markCompleteBtnText");
+
+      if (isDone) {
+        btn.className = "w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition";
+        label.innerText = "已完成今日靈修 (點擊取消)";
+      } else {
+        btn.className = "w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition";
+        label.innerText = "標記今日已完成";
+      }
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       5. 經文 API 載入與互動 (高亮)
+       ======================================================== */
+    async function loadDayScripture(day) {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === day);
+      if (!planItem) return;
+
+      document.getElementById("readingDayBadge").innerText = `第 ${day} 天經文`;
+      document.getElementById("scriptureRef").innerText = planItem.zhRef;
+      document.getElementById("scriptureTheme").innerText = `主題：${planItem.theme}`;
+      
+      // Load note for today
+      const noteInput = document.getElementById("dayNoteInput");
+      noteInput.value = appData.notes[`day-${day}`] || "";
+
+      const textContainer = document.getElementById("scriptureTextContainer");
+      textContainer.innerHTML = `
+        <div class="flex items-center justify-center text-stone-400 py-10 space-x-2">
+          <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
+          <span>正在獲取經文...</span>
+        </div>
+      `;
+      lucide.createIcons();
+
+      try {
+        // Query bible-api.com with Chinese CUV translation
+        const encodedRef = encodeURIComponent(planItem.ref);
+        const resp = await fetch(`https://bible-api.com/${encodedRef}?translation=cuv`);
+        
+        if (!resp.ok) throw new Error("API 回應異常");
+        const data = await resp.json();
+        currentRawVerseData = data;
+        renderScriptureVerses(data, day);
+      } catch (err) {
+        console.warn("API 載入失敗，採用內建經典釋義備援方案", err);
+        renderFallbackVerses(planItem, day);
+      }
+    }
+
+    function reloadCurrentScripture() {
+      loadDayScripture(appData.currentDay);
+    }
+
+    function renderScriptureVerses(apiData, day) {
+      const container = document.getElementById("scriptureTextContainer");
+      container.innerHTML = "";
+
+      if (!apiData.verses || apiData.verses.length === 0) {
+        container.innerHTML = `<p class="text-stone-700">${apiData.text || "查無此經文內容"}</p>`;
+        return;
+      }
+
+      apiData.verses.forEach(v => {
+        const verseKey = `day-${day}-v${v.verse}`;
+        const activeHighlight = appData.highlights[verseKey];
+
+        const p = document.createElement("p");
+        p.className = "cursor-pointer select-text hover:bg-stone-100/70 p-1.5 rounded transition flex items-start gap-2";
+        
+        let highlightClass = "";
+        if (activeHighlight && activeHighlight !== "none") {
+          highlightClass = `verse-highlight-${activeHighlight}`;
+        }
+
+        p.innerHTML = `
+          <span class="text-xs text-stone-400 font-sans font-bold select-none pt-1">${v.verse}</span>
+          <span class="flex-1 ${highlightClass}" id="verseSpan-${verseKey}">${v.text.trim()}</span>
+        `;
+
+        p.onclick = () => toggleVerseHighlight(verseKey);
+        container.appendChild(p);
+      });
+      lucide.createIcons();
+    }
+
+    function renderFallbackVerses(planItem, day) {
+      const container = document.getElementById("scriptureTextContainer");
+      const verseKey = `day-${day}-v1`;
+      const activeHighlight = appData.highlights[verseKey];
+      let highlightClass = "";
+      if (activeHighlight && activeHighlight !== "none") {
+        highlightClass = `verse-highlight-${activeHighlight}`;
+      }
+
+      container.innerHTML = `
+        <p class="cursor-pointer select-text hover:bg-stone-100/70 p-1.5 rounded transition flex items-start gap-2" onclick="toggleVerseHighlight('${verseKey}')">
+          <span class="text-xs text-stone-400 font-sans font-bold select-none pt-1">1</span>
+          <span class="flex-1 ${highlightClass}" id="verseSpan-${verseKey}">${planItem.theme}。（此經文目前於離線或快速快取檢視中）</span>
+        </p>
+      `;
+      currentRawVerseData = { text: planItem.theme, reference: planItem.zhRef };
+      lucide.createIcons();
+    }
+
+    /* 高亮機制 */
+    function setActiveHighlightColor(color) {
+      activeColor = color;
+      document.querySelectorAll(".active-color-btn").forEach(btn => {
+        if (btn.dataset.color === color) {
+          btn.classList.add("ring-2", "ring-stone-600");
+        } else {
+          btn.classList.remove("ring-2", "ring-stone-600");
+        }
+      });
+    }
+
+    function toggleVerseHighlight(verseKey) {
+      const span = document.getElementById(`verseSpan-${verseKey}`);
+      if (!span) return;
+
+      if (activeColor === "none" || appData.highlights[verseKey] === activeColor) {
+        delete appData.highlights[verseKey];
+        span.className = span.className.replace(/verse-highlight-\w+/g, "").trim();
+      } else {
+        appData.highlights[verseKey] = activeColor;
+        span.className = span.className.replace(/verse-highlight-\w+/g, "").trim();
+        span.classList.add(`verse-highlight-${activeColor}`);
+      }
+      saveLocalData();
+    }
+
+    /* 筆記機制 */
+    let noteDebounceTimer = null;
+    function handleNoteInput() {
+      const text = document.getElementById("dayNoteInput").value;
+      appData.notes[`day-${appData.currentDay}`] = text;
+      
+      const status = document.getElementById("noteSavedStatus");
+      status.innerText = "儲存中...";
+      
+      clearTimeout(noteDebounceTimer);
+      noteDebounceTimer = setTimeout(() => {
+        saveLocalData();
+        status.innerText = "已儲存至本地";
+        setTimeout(() => {
+          status.innerText = "自動即時儲存";
+        }, 2000);
+      }, 800);
+    }
+
+    /* ========================================================
+       6. 情境錦囊書籤模組 (Bookmark with Situation Tags)
+       ======================================================== */
+    function openBookmarkModal() {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      document.getElementById("bookmarkPreviewRef").innerText = `${planItem.zhRef} · ${planItem.theme}`;
+      document.querySelectorAll(".situation-cb").forEach(cb => cb.checked = false);
+      document.getElementById("customTagNote").value = "";
+      document.getElementById("bookmarkModal").classList.remove("hidden");
+    }
+
+    function closeBookmarkModal() {
+      document.getElementById("bookmarkModal").classList.add("hidden");
+    }
+
+    function saveBookmark() {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      const checkedTags = Array.from(document.querySelectorAll(".situation-cb:checked")).map(cb => cb.value);
+      const customNote = document.getElementById("customTagNote").value.trim();
+
+      const newBookmark = {
+        id: "bm_" + Date.now(),
+        day: appData.currentDay,
+        ref: planItem.ref,
+        zhRef: planItem.zhRef,
+        theme: planItem.theme,
+        text: currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme,
+        tags: checkedTags.length > 0 ? checkedTags : ["未分類"],
+        customNote: customNote,
+        createdAt: new Date().toISOString().split("T")[0]
+      };
+
+      appData.bookmarks.unshift(newBookmark);
+      saveLocalData();
+      renderBookmarksList('all');
+      closeBookmarkModal();
+    }
+
+    function deleteBookmark(id) {
+      appData.bookmarks = appData.bookmarks.filter(b => b.id !== id);
+      saveLocalData();
+      renderBookmarksList('all');
+    }
+
+    function filterBookmarks(tag) {
+      document.querySelectorAll(".pill-filter").forEach(btn => {
+        if (btn.dataset.tag === tag) {
+          btn.className = "text-xs px-2.5 py-1 rounded-full bg-stone-800 text-white font-medium pill-filter";
+        } else {
+          btn.className = "text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter";
+        }
+      });
+      renderBookmarksList(tag);
+    }
+
+    function renderBookmarksList(filterTag = 'all') {
+      const container = document.getElementById("bookmarksList");
+      const countLabel = document.getElementById("bookmarkCount");
+      countLabel.innerText = `${appData.bookmarks.length} 則`;
+
+      const list = filterTag === 'all' 
+        ? appData.bookmarks 
+        : appData.bookmarks.filter(b => b.tags && b.tags.includes(filterTag));
+
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-xs text-stone-400 text-center py-4">此情境下尚無收藏經文。</p>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      list.forEach(bm => {
+        const item = document.createElement("div");
+        item.className = "p-3 rounded-xl border border-stone-200/80 hover:border-amber-300 bg-stone-50/50 transition space-y-1.5 relative group";
+        
+        const tagsBadge = bm.tags.map(t => `<span class="bg-amber-100/70 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-medium">${t}</span>`).join(" ");
+
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-serif-tc font-bold text-xs text-stone-900">${bm.zhRef}</span>
+            <button onclick="deleteBookmark('${bm.id}')" class="text-stone-300 hover:text-rose-600 transition p-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <p class="font-serif-tc text-xs text-stone-700 line-clamp-2 leading-relaxed">"${bm.text.replace(/\n/g, ' ').trim()}"</p>
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex flex-wrap gap-1">${tagsBadge}</div>
+            <span class="text-[10px] text-stone-400">${bm.createdAt}</span>
+          </div>
+          ${bm.customNote ? `<p class="text-[11px] text-stone-500 italic bg-white p-1.5 rounded border border-stone-100">筆記：${bm.customNote}</p>` : ''}
+        `;
+        container.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       7. 經文分享模組 (Share Card & Native Share)
+       ======================================================== */
+    function openShareModal() {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      const rawText = currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme;
+      
+      document.getElementById("shareTextContent").innerText = rawText.trim();
+      document.getElementById("shareRefContent").innerText = `—— ${planItem.zhRef}`;
+      document.getElementById("shareModal").classList.remove("hidden");
+    }
+
+    function closeShareModal() {
+      document.getElementById("shareModal").classList.add("hidden");
+    }
+
+    function getFormattedShareString() {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      const rawText = currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme;
+      return `【靈修分享 · ${planItem.zhRef}】\n\n"${rawText.trim()}"\n\n主題：${planItem.theme}\n—— 靜沐靈光 每日靈修筆記`;
+    }
+
+    function copyShareText() {
+      const text = getFormattedShareString();
+      navigator.clipboard.writeText(text).then(() => {
+        alert("已複製經文到剪貼簿，可直接傳送給親友！");
+      }).catch(err => {
+        console.error(err);
+      });
+    }
+
+    function nativeShare() {
+      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      const text = getFormattedShareString();
+      if (navigator.share) {
+        navigator.share({
+          title: `經文分享：${planItem.zhRef}`,
+          text: text
+        }).catch(err => console.log(err));
+      } else {
+        copyShareText();
+      }
+    }
+
+    /* ========================================================
+       8. Google OAuth 2.0 (GIS) 與 Drive AppData 雲端同步
+       ======================================================== */
+    const DRIVE_FILE_NAME = "devotional_bible_data.json";
+
+    function openAuthModal() {
+      document.getElementById("authModal").classList.remove("hidden");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+    }
+
+    function initGoogleTokenClient() {
+      let clientId = DEFAULT_CLIENT_ID;
+      const config = localStorage.getItem(CONFIG_KEY);
+      if (config) {
+        try {
+          const parsed = JSON.parse(config);
+          if (parsed.clientId) clientId = parsed.clientId;
+        } catch (e) {}
+      }
+      if (!clientId) return;
+
+      try {
+        if (clientId && window.google) {
+          tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: "https://www.googleapis.com/auth/drive.appdata",
+            callback: (response) => {
+              if (response.error) {
+                console.error("授權錯誤", response);
+                updateSyncUI(false, "登入授權失敗");
+                return;
+              }
+              accessToken = response.access_token;
+              updateSyncUI(true, "已連線至 Google 雲端");
+              document.getElementById("authBtnLabel").innerText = "已連結 Google";
+              document.getElementById("disconnectBtn").classList.remove("hidden");
+              closeAuthModal();
+              // Load from Google Drive AppData
+              loadDataFromGoogleDrive();
+            }
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function saveAndSignInGoogle() {
+      const clientId = document.getElementById("clientIdInput").value.trim();
+      if (!clientId) {
+        alert("請先輸入有效的 Google Client ID！");
+        return;
+      }
+
+      localStorage.setItem(CONFIG_KEY, JSON.stringify({ clientId }));
+
+      if (window.google) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: "https://www.googleapis.com/auth/drive.appdata",
+          callback: (response) => {
+            if (response.error) {
+              alert("Google 登入失敗: " + response.error);
+              return;
+            }
+            accessToken = response.access_token;
+            updateSyncUI(true, "已連線至 Google 雲端");
+            document.getElementById("authBtnLabel").innerText = "已連結 Google";
+            document.getElementById("disconnectBtn").classList.remove("hidden");
+            closeAuthModal();
+            loadDataFromGoogleDrive();
+          }
+        });
+        tokenClient.requestAccessToken({ prompt: "consent" });
+      } else {
+        alert("Google 登入套件尚在載入中，請稍候重試。");
+      }
+    }
+
+    function disconnectGoogle() {
+      accessToken = null;
+      driveFileId = null;
+      updateSyncUI(false, "本地模式");
+      document.getElementById("authBtnLabel").innerText = "Google 連線設定";
+      document.getElementById("disconnectBtn").classList.add("hidden");
+      closeAuthModal();
+      alert("已中斷 Google 雲端同步。");
+    }
+
+    function updateSyncUI(isConnected, text) {
+      const badge = document.getElementById("syncBadge");
+      const icon = document.getElementById("syncIcon");
+      const label = document.getElementById("syncText");
+
+      label.innerText = text;
+      if (isConnected) {
+        badge.className = "flex items-center text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full";
+        icon.setAttribute("data-lucide", "cloud");
+        icon.className = "w-3.5 h-3.5 mr-1 text-emerald-600";
+      } else {
+        badge.className = "flex items-center text-xs text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full";
+        icon.setAttribute("data-lucide", "cloud-off");
+        icon.className = "w-3.5 h-3.5 mr-1 text-stone-400";
+      }
+      lucide.createIcons();
+    }
+
+    /* 從 Google Drive AppData 讀取 JSON */
+    async function loadDataFromGoogleDrive() {
+      if (!accessToken) return;
+
+      try {
+        updateSyncUI(true, "雲端資料下載中...");
+        // 1. Search for existing file in appDataFolder
+        const query = encodeURIComponent("name = '" + DRIVE_FILE_NAME + "' and 'appDataFolder' in parents and trashed = false");
+        const listResp = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name)`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const listData = await listResp.json();
+
+        if (listData.files && listData.files.length > 0) {
+          driveFileId = listData.files[0].id;
+          // 2. Fetch content
+          const contentResp = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          const cloudData = await contentResp.json();
+          // Merge with local data
+          appData = Object.assign(appData, cloudData);
+          saveLocalData();
+          renderDayButtons();
+          renderBookmarksList('all');
+          loadDayScripture(appData.currentDay);
+          updateSyncUI(true, "雲端資料已同步");
+        } else {
+          // File does not exist, upload current state as initial
+          await uploadDataToGoogleDrive();
+          updateSyncUI(true, "雲端建立檔案完成");
+        }
+      } catch (err) {
+        console.error("雲端讀取失敗", err);
+        updateSyncUI(true, "雲端讀取異常");
+      }
+    }
+
+    /* 上傳保存至 Google Drive AppData */
+    async function uploadDataToGoogleDrive() {
+      if (!accessToken) return;
+
+      try {
+        const fileContent = JSON.stringify(appData);
+        
+        if (!driveFileId) {
+          // Create new file with multipart upload
+          const metadata = {
+            name: DRIVE_FILE_NAME,
+            parents: ["appDataFolder"]
+          };
+          const form = new FormData();
+          form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+          form.append("file", new Blob([fileContent], { type: "application/json" }));
+
+          const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}` },
+            body: form
+          });
+          const data = await res.json();
+          driveFileId = data.id;
+        } else {
+          // Update existing file
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json"
+            },
+            body: fileContent
+          });
+        }
+        updateSyncUI(true, "已同步至雲端");
+      } catch (err) {
+        console.error("雲端上傳失敗", err);
+        updateSyncUI(true, "雲端同步失敗");
+      }
+    }
+
+    let cloudSyncTimer = null;
+    function scheduleAutoCloudSync() {
+      if (!accessToken) return;
+      clearTimeout(cloudSyncTimer);
+      cloudSyncTimer = setTimeout(() => {
+        uploadDataToGoogleDrive();
+      }, 2000);
+    }
+
+    function triggerManualSync() {
+      if (!accessToken) {
+        openAuthModal();
+      } else {
+        uploadDataToGoogleDrive();
+      }
+    }
+  </script>
+</body>
+</html>
