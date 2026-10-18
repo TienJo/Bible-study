@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>靈修讀經筆記 · Devotional Bible</title>
+  <title>靜沐靈光 · DEVOTIONAL BIBLE</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Identity Services -->
@@ -11,421 +11,912 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-    body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background-color: #fbf9f5;
-      color: #2c2825;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800;900&family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    :root {
+      --bg-studio: #f2f2f0;
+      --text-main: #0a0a0a;
+      --text-muted: #71717a;
     }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-studio);
+      color: var(--text-main);
+      letter-spacing: -0.015em;
+    }
+
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+    }
+
     .font-serif-tc {
       font-family: 'Noto Serif TC', serif;
     }
-    .verse-highlight-yellow { background-color: #fef08a; border-radius: 4px; padding: 1px 3px; }
-    .verse-highlight-green { background-color: #bbf7d0; border-radius: 4px; padding: 1px 3px; }
-    .verse-highlight-blue { background-color: #bfdbfe; border-radius: 4px; padding: 1px 3px; }
-    .verse-highlight-pink { background-color: #fbcfe8; border-radius: 4px; padding: 1px 3px; }
+
+    .font-mono-swiss {
+      font-family: 'Space Mono', monospace;
+      letter-spacing: -0.02em;
+    }
+
+    /* 英文經文專用閱讀排版：加大詞與詞之間距 (word-spacing) 與適度字距 */
+    .font-en-text {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      word-spacing: 0.18em;
+      letter-spacing: 0.015em;
+      line-height: 1.75;
+    }
+
+    /* Minimal Highlighting */
+    .verse-highlight-yellow { background-color: #fde047; padding: 2px 4px; }
+    .verse-highlight-green  { background-color: #86efac; padding: 2px 4px; }
+    .verse-highlight-blue   { background-color: #7dd3fc; padding: 2px 4px; }
+    .verse-highlight-pink   { background-color: #f472b6; padding: 2px 4px; color: #000; }
+
+    .verse-selected {
+      background-color: #e4e4e7 !important;
+    }
+
+    /* Invisible clean scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #a1a1aa;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #71717a;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="h-full flex flex-col antialiased overflow-hidden select-text">
 
-  <!-- Header Navigation -->
-  <header class="border-b border-stone-200 bg-white/80 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <i data-lucide="book-open" class="w-6 h-6 text-amber-700"></i>
-        <span class="font-serif-tc font-bold text-xl text-stone-800 tracking-wide">靜沐靈光</span>
-        <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">靈修筆記</span>
+  <!-- Editorial Top Bar (Motto inspired minimal header) -->
+  <header class="h-16 px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#f2f2f0] z-30">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-baseline space-x-2">
+        <span class="font-headline font-black text-2xl text-black tracking-tighter">BIBLE*</span>
+        <span class="text-[10px] font-mono-swiss text-zinc-500 uppercase tracking-widest">(DEVOTIONAL)</span>
       </div>
 
-      <div class="flex items-center space-x-2">
-        <!-- Sync Status -->
-        <div id="syncBadge" class="hidden sm:flex items-center text-xs text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full">
-          <i data-lucide="cloud-off" class="w-3.5 h-3.5 mr-1 text-stone-400" id="syncIcon"></i>
-          <span id="syncText">本地模式</span>
+      <button onclick="toggleDrawer()" class="text-xs font-mono-swiss uppercase hover:underline text-zinc-600 flex items-center gap-1">
+        <span>[DISPATCH INDEX]</span>
+      </button>
+    </div>
+
+    <!-- Center Navigation: Minimal Previous / Current / Next -->
+    <div class="hidden md:flex items-center space-x-4">
+      <button onclick="navigateChapter(-1)" class="text-xs font-mono-swiss uppercase text-zinc-400 hover:text-black transition">
+        ← PREV
+      </button>
+
+      <div class="text-center px-4">
+        <div id="headerTitleZh" class="font-bold text-sm tracking-tight text-black cursor-pointer hover:underline" onclick="openProgressModal()">
+          約翰福音 第 14 章
         </div>
-
-        <!-- Google Drive Settings / Auth Button -->
-        <button onclick="openAuthModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-stone-300 hover:bg-stone-50 transition text-sm text-stone-700 font-medium">
-          <i data-lucide="settings" class="w-4 h-4 text-stone-500"></i>
-          <span id="authBtnLabel">Google 連線設定</span>
-        </button>
+        <div id="headerTitleEn" class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-wider">
+          JOHN 14 · (NT)
+        </div>
       </div>
+
+      <button onclick="navigateChapter(1)" class="text-xs font-mono-swiss uppercase text-zinc-400 hover:text-black transition">
+        NEXT →
+      </button>
+    </div>
+
+    <!-- Right Actions -->
+    <div class="flex items-center space-x-4 text-xs font-mono-swiss">
+      <!-- Mark Read -->
+      <button id="markChapterReadBtn" onclick="toggleCurrentChapterRead()" class="hover:underline text-black font-bold uppercase flex items-center gap-1.5">
+        <span id="markChapterReadText">(MARK AS READ)</span>
+      </button>
+
+      <!-- Matrix Progress -->
+      <button onclick="openProgressModal()" class="hover:underline text-zinc-600 uppercase">
+        <span id="navProgressBadge">[MATRIX 0.0%]</span>
+      </button>
+
+      <!-- Auth Settings -->
+      <button onclick="openAuthModal()" class="hover:underline text-zinc-600 uppercase" title="Google Drive 設定">
+        [CLOUD]
+      </button>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-6">
+  <!-- Main Viewport Canvas -->
+  <div class="flex-1 flex overflow-hidden w-full relative">
 
-    <!-- Left Column: Reading Plan & Navigation (4 cols) -->
-    <div class="md:col-span-4 space-y-6">
+    <!-- Left Minimal Slide Drawer (Hidden by default or toggled, completely borderless) -->
+    <aside id="drawerPanel" class="w-80 shrink-0 bg-[#ebebeb] flex flex-col h-full overflow-hidden transition-all duration-300 z-20 -ml-80">
       
-      <!-- Reading Plan Selector -->
-      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-serif-tc font-bold text-base text-stone-800 flex items-center gap-1.5">
-            <i data-lucide="calendar" class="w-4 h-4 text-amber-700"></i> 每日靈修進度
-          </h2>
-          <span id="currentProgressText" class="text-xs text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded">第 1 / 30 天</span>
-        </div>
+      <div class="flex-1 overflow-y-auto p-6 space-y-8">
         
-        <p class="text-xs text-stone-500 mb-4">計畫：30天盼望與信心同行靈修</p>
-
-        <!-- Day Selector Grid -->
-        <div class="grid grid-cols-6 gap-1.5 max-h-48 overflow-y-auto pr-1" id="dayButtonsContainer">
-          <!-- Populated by JS -->
-        </div>
-
-        <div class="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
-          <button id="markCompleteBtn" onclick="toggleTodayCompletion()" class="w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border transition">
-            <i data-lucide="check-circle" class="w-4 h-4"></i>
-            <span id="markCompleteBtnText">標記今日已完成</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Situation Bookmarks錦囊庫 -->
-      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-serif-tc font-bold text-base text-stone-800 flex items-center gap-1.5">
-            <i data-lucide="compass" class="w-4 h-4 text-amber-700"></i> 情境守護錦囊
-          </h2>
-          <span id="bookmarkCount" class="text-xs text-stone-400">0 則</span>
-        </div>
-        <p class="text-xs text-stone-500 mb-3">當你面臨不同處境時，重溫帶來安慰的經文：</p>
-        
-        <!-- Filter pills -->
-        <div class="flex flex-wrap gap-1.5 mb-3" id="situationFilterPills">
-          <button onclick="filterBookmarks('all')" class="text-xs px-2.5 py-1 rounded-full bg-stone-800 text-white font-medium pill-filter" data-tag="all">全部</button>
-          <button onclick="filterBookmarks('焦慮不安')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="焦慮不安">焦慮不安</button>
-          <button onclick="filterBookmarks('缺乏信心')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="缺乏信心">缺乏信心</button>
-          <button onclick="filterBookmarks('尋求引導')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="尋求引導">尋求引導</button>
-          <button onclick="filterBookmarks('感恩讚美')" class="text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter" data-tag="感恩讚美">感恩讚美</button>
-        </div>
-
-        <div id="bookmarksList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-          <!-- Dynamic Bookmarks -->
-          <p class="text-xs text-stone-400 text-center py-4">尚未收藏情境經文，點選經文卡片右上角的「收藏錦囊」即可加入。</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Right Column: Scripture Reader, Highlighter & Notes (8 cols) -->
-    <div class="md:col-span-8 space-y-6">
-
-      <!-- Scripture Card -->
-      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm relative">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-4 mb-5">
-          <div>
-            <div class="flex items-center gap-2">
-              <span id="readingDayBadge" class="text-xs font-semibold px-2 py-0.5 bg-amber-100 text-amber-900 rounded">第 1 天經文</span>
-              <h1 id="scriptureRef" class="font-serif-tc font-bold text-2xl text-stone-900">約翰福音 14:27</h1>
-            </div>
-            <p id="scriptureTheme" class="text-xs text-stone-500 mt-1">主題：耶穌所賜出人意外的平安</p>
+        <!-- Section: Random Generator -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-mono-swiss text-zinc-500 uppercase tracking-widest">(CHOOSE YOUR DISPATCH)</div>
+          
+          <div class="flex space-x-2 text-xs font-mono-swiss">
+            <button onclick="setRandomScope('all')" class="scope-btn font-bold underline text-black uppercase" data-scope="all">ALL (1,189)</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="setRandomScope('nt')" class="scope-btn text-zinc-500 hover:text-black uppercase" data-scope="nt">NT (260)</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="setRandomScope('wisdom')" class="scope-btn text-zinc-500 hover:text-black uppercase" data-scope="wisdom">WISDOM</button>
           </div>
 
-          <!-- Action buttons for Scripture -->
+          <button onclick="drawRandomChapter()" class="w-full text-left py-3 px-4 bg-black text-white text-xs font-mono-swiss uppercase tracking-wider hover:bg-zinc-800 transition flex items-center justify-between">
+            <span>RANDOM UNREAD CHAPTER</span>
+            <span>↓</span>
+          </button>
+
+          <!-- Direct Dropdowns -->
+          <div class="grid grid-cols-2 gap-2 pt-2 text-xs font-mono-swiss">
+            <select id="manualBookSelect" onchange="onManualBookChange()" class="p-2 bg-white text-black font-medium focus:outline-none cursor-pointer">
+              <!-- Populated by JS -->
+            </select>
+            <select id="manualChapterSelect" onchange="onManualChapterChange()" class="p-2 bg-white text-black font-medium focus:outline-none cursor-pointer">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Section: Progress Breakdown -->
+        <div class="space-y-2">
+          <div class="text-[11px] font-mono-swiss text-zinc-500 uppercase tracking-widest">(PROGRESSION RATIO)</div>
+          <div class="font-headline font-black text-3xl tracking-tighter" id="drawerTotalPct">0.0%</div>
+          <div class="w-full bg-zinc-300 h-1">
+            <div id="drawerTotalBar" class="bg-black h-1 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between text-[11px] font-mono-swiss text-zinc-500 pt-1">
+            <span>OT: <b id="drawerOtText" class="text-black">0%</b></span>
+            <span>NT: <b id="drawerNtText" class="text-black">0%</b></span>
+          </div>
+        </div>
+
+        <!-- Section: Recent History -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-[11px] font-mono-swiss text-zinc-500 uppercase tracking-widest">
+            <span>(RECENT SESSIONS)</span>
+            <button onclick="clearHistory()" class="text-zinc-400 hover:text-black underline text-[10px]">CLEAR</button>
+          </div>
+          <div id="readingHistoryList" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Section: Situation Bookmarks -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-mono-swiss text-zinc-500 uppercase tracking-widest">(BOOKMARKED VAULT)</div>
+          
+          <div class="flex flex-wrap gap-1 text-[11px] font-mono-swiss" id="situationFilterPills">
+            <button onclick="filterBookmarks('all')" class="underline font-bold text-black pill-filter" data-tag="all">ALL</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="filterBookmarks('焦慮不安')" class="text-zinc-500 hover:text-black pill-filter" data-tag="焦慮不安">焦慮</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="filterBookmarks('缺乏信心')" class="text-zinc-500 hover:text-black pill-filter" data-tag="缺乏信心">信心</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="filterBookmarks('尋求引導')" class="text-zinc-500 hover:text-black pill-filter" data-tag="尋求引導">引導</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="filterBookmarks('感恩讚美')" class="text-zinc-500 hover:text-black pill-filter" data-tag="感恩讚美">感恩</button>
+          </div>
+
+          <div id="bookmarksList" class="space-y-2 max-h-56 overflow-y-auto">
+            <p class="text-xs text-zinc-400 font-mono-swiss py-2">NO BOOKMARKS</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 bg-zinc-200/80 text-[10px] font-mono-swiss text-zinc-500 flex justify-between">
+        <span id="syncText">LOCAL STORAGE</span>
+        <button onclick="triggerManualSync()" class="underline hover:text-black">SYNC NOW</button>
+      </div>
+    </aside>
+
+    <!-- Main Editorial Reading Canvas: Expands to Fill Entire Width -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
+      
+      <!-- Sub-Bar: Typography & Mode Controls (Minimal text row) -->
+      <div class="px-6 sm:px-12 py-3 bg-white flex flex-wrap items-center justify-between text-xs font-mono-swiss shrink-0 select-none border-b border-zinc-100">
+        
+        <!-- Selection Hint -->
+        <div class="text-zinc-400 uppercase text-[11px] tracking-wider">
+          <span id="verseSelectHintText">SELECT VERSES TO HIGHLIGHT, COPY OR NOTE</span>
+        </div>
+
+        <!-- Controls: View Mode, Translation, Size -->
+        <div class="flex items-center space-x-6 text-zinc-500">
+          
+          <!-- Translation -->
+          <div class="flex items-center space-x-1.5">
+            <span class="text-zinc-400">EN:</span>
+            <select id="enTranslationSelect" onchange="onEnTranslationChange()" class="bg-transparent font-bold text-black focus:outline-none cursor-pointer">
+              <option value="KJV">KING JAMES (KJV)</option>
+              <option value="NLV">NEW LIFE (NLV)</option>
+            </select>
+          </div>
+
+          <!-- Mode -->
           <div class="flex items-center space-x-2">
-            <!-- Bookmark trigger -->
-            <button onclick="openBookmarkModal()" title="加入情境錦囊" class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition flex items-center gap-1 text-xs">
-              <i data-lucide="bookmark-plus" class="w-4 h-4 text-amber-600"></i>
-              <span class="hidden sm:inline">收藏錦囊</span>
+            <button onclick="setViewMode('interlinear')" class="view-mode-btn font-bold text-black underline" data-mode="interlinear">INTERLINEAR</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="setViewMode('parallel')" class="view-mode-btn hover:text-black" data-mode="parallel">PARALLEL</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="setViewMode('zhOnly')" class="view-mode-btn hover:text-black" data-mode="zhOnly">中文</button>
+            <span class="text-zinc-300">/</span>
+            <button onclick="setViewMode('enOnly')" class="view-mode-btn hover:text-black" data-mode="enOnly">EN</button>
+          </div>
+
+          <!-- Font Size -->
+          <div class="hidden md:flex items-center space-x-2 text-[11px]">
+            <button onclick="changeFontSize('text-base')" class="hover:text-black font-size-btn text-zinc-400" data-size="text-base">A-</button>
+            <button onclick="changeFontSize('text-lg')" class="font-bold text-black font-size-btn" data-size="text-lg">A</button>
+            <button onclick="changeFontSize('text-xl')" class="hover:text-black font-size-btn text-zinc-400" data-size="text-xl">A+</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hero Typography Section (Motto style giant header) -->
+      <div class="px-6 sm:px-12 pt-8 pb-4 bg-white shrink-0">
+        <div class="w-full max-w-[90%] md:max-w-[75%] lg:max-w-[60%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div class="text-xs font-mono-swiss text-zinc-400 uppercase tracking-widest mb-2" id="heroSubtitle">
+              (CHAPTER 14 OF 21 · NEW TESTAMENT)
+            </div>
+            <h1 class="font-headline font-black text-4xl sm:text-6xl text-black tracking-tighter" id="heroTitle">
+              *JOHN 14<br><span class="font-serif-tc text-3xl sm:text-5xl font-bold tracking-tight">約翰福音 第十四章</span>
+            </h1>
+          </div>
+
+          <div class="flex items-center space-x-3 text-xs font-mono-swiss">
+            <button onclick="navigateChapter(-1)" class="p-2 hover:underline text-zinc-500 uppercase">
+              ← PREV
             </button>
-            <!-- Share trigger -->
-            <button onclick="openShareModal()" title="分享經文" class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition flex items-center gap-1 text-xs">
-              <i data-lucide="share-2" class="w-4 h-4 text-stone-600"></i>
-              <span class="hidden sm:inline">分享</span>
+            <span class="text-zinc-300">/</span>
+            <button onclick="navigateChapter(1)" class="p-2 hover:underline text-zinc-900 font-bold uppercase">
+              NEXT →
             </button>
           </div>
-        </div>
-
-        <!-- Highlight Toolbar -->
-        <div class="flex items-center justify-between text-xs text-stone-500 bg-stone-50 rounded-xl p-2.5 mb-5 border border-stone-100">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="highlighter" class="w-4 h-4 text-stone-400"></i>
-            <span>點擊經文節數標記高亮色：</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="setActiveHighlightColor('yellow')" class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-yellow-400 hover:scale-110 transition active-color-btn" data-color="yellow"></button>
-            <button onclick="setActiveHighlightColor('green')" class="w-5 h-5 rounded-full bg-green-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="green"></button>
-            <button onclick="setActiveHighlightColor('blue')" class="w-5 h-5 rounded-full bg-blue-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="blue"></button>
-            <button onclick="setActiveHighlightColor('pink')" class="w-5 h-5 rounded-full bg-pink-200 border-2 border-transparent hover:scale-110 transition active-color-btn" data-color="pink"></button>
-            <button onclick="setActiveHighlightColor('none')" class="text-xs text-stone-400 hover:text-stone-700 ml-1">清除色</button>
-          </div>
-        </div>
-
-        <!-- Scripture Content Box -->
-        <div id="scriptureTextContainer" class="font-serif-tc text-lg leading-relaxed text-stone-800 space-y-3 min-h-[140px] py-2">
-          <!-- Verses will be injected here with interactive click for highlighting -->
-          <div class="flex items-center justify-center text-stone-400 py-10 space-x-2">
-            <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
-            <span>經文載入中...</span>
-          </div>
-        </div>
-
-        <!-- API Source Credit -->
-        <div class="mt-6 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
-          <span>譯本：和合本繁體 (CUV)</span>
-          <span class="hover:underline cursor-pointer" onclick="reloadCurrentScripture()">重新載入經文</span>
         </div>
       </div>
 
-      <!-- Reflection & Note Pad -->
-      <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="pen-tool" class="w-4 h-4 text-amber-700"></i>
-            <h2 class="font-serif-tc font-bold text-lg text-stone-800">今日靈修反思與筆記</h2>
+      <!-- Scrollable Scripture Canvas -->
+      <div class="flex-1 overflow-y-auto px-6 sm:px-12 py-6 bg-white" id="scriptureScrollArea">
+        <div class="w-full max-w-[90%] md:max-w-[75%] lg:max-w-[60%] mx-auto space-y-8">
+          
+          <div id="scriptureTextContainer" class="w-full">
+            <!-- Verses dynamically injected here -->
           </div>
-          <span id="noteSavedStatus" class="text-xs text-stone-400">自動即時儲存</span>
-        </div>
 
-        <p class="text-xs text-stone-500">
-          寫下經文給你的感動、今日禱告，或是如何將這句經文應用在生活中。
-        </p>
+          <!-- Bottom Editorial Reflection Pad -->
+          <div class="pt-16 pb-20 border-t border-zinc-200 space-y-4">
+            <div class="flex items-center justify-between text-xs font-mono-swiss text-zinc-400 uppercase tracking-widest">
+              <span>(REFLECTIONS & FIELD NOTES)</span>
+              <span id="noteSavedStatus">AUTO-SAVED</span>
+            </div>
 
-        <textarea 
-          id="dayNoteInput" 
-          rows="5" 
-          oninput="handleNoteInput()"
-          placeholder="在這段經文中，我看見神對我說了什麼？在面對日常生活的考驗時，我可以如何回應？"
-          class="w-full p-3.5 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-stone-50/50 transition font-sans"
-        ></textarea>
+            <h3 class="font-headline font-black text-2xl tracking-tight text-black">
+              WORDS WORTH HOLDING ONTO®
+            </h3>
 
-        <div class="flex justify-between items-center text-xs text-stone-400 pt-1">
-          <span>筆記將連同高亮與進度同步保存</span>
-          <button onclick="triggerManualSync()" class="text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 手動同步到雲端
-          </button>
+            <textarea 
+              id="dayNoteInput" 
+              rows="4" 
+              oninput="handleNoteInput()"
+              placeholder="Record your thoughts, prayers, and convictions from today's chapter..."
+              class="w-full p-4 text-sm bg-[#f7f7f6] text-black border-0 focus:outline-none focus:ring-1 focus:ring-black transition font-serif-tc placeholder-zinc-400"
+            ></textarea>
+
+            <div class="flex justify-between items-center text-[10px] font-mono-swiss text-zinc-400">
+              <span>STORED ON GOOGLE DRIVE APPDATA</span>
+              <button onclick="triggerManualSync()" class="underline hover:text-black">TRIGGER SYNC</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
-    </div>
-  </main>
+      <!-- Floating Swiss / Brutalist Multi-Verse Action Bar -->
+      <div id="multiVerseActionBar" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-none shadow-2xl flex items-center space-x-4 text-xs font-mono-swiss z-30 transition-all duration-300 opacity-0 pointer-events-none translate-y-4">
+        
+        <span id="selectedVerseBadge" class="font-bold text-yellow-300 pr-3 border-r border-zinc-700 uppercase">
+          0 VERSES SELECTED
+        </span>
 
-  <!-- Modal: Google Client ID Connection Settings -->
-  <div id="authModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
-          <i data-lucide="cloud" class="w-5 h-5 text-amber-700"></i> Google 雲端連線設定
-        </h3>
-        <button onclick="closeAuthModal()" class="text-stone-400 hover:text-stone-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
+        <!-- Palette -->
+        <div class="flex items-center space-x-2 pr-3 border-r border-zinc-700">
+          <button onclick="applyHighlightToSelected('yellow')" class="w-3.5 h-3.5 bg-yellow-300 hover:scale-125 transition" title="Yellow"></button>
+          <button onclick="applyHighlightToSelected('green')" class="w-3.5 h-3.5 bg-green-300 hover:scale-125 transition" title="Green"></button>
+          <button onclick="applyHighlightToSelected('blue')" class="w-3.5 h-3.5 bg-sky-300 hover:scale-125 transition" title="Blue"></button>
+          <button onclick="applyHighlightToSelected('pink')" class="w-3.5 h-3.5 bg-pink-400 hover:scale-125 transition" title="Pink"></button>
+          <button onclick="applyHighlightToSelected('none')" class="text-[10px] text-zinc-400 hover:text-white pl-1">CLR</button>
+        </div>
+
+        <!-- 複製選項：可分開複製中文、英文或中英雙語 -->
+        <div class="flex items-center space-x-1.5 pr-3 border-r border-zinc-700">
+          <span class="text-zinc-500 uppercase text-[10px]">COPY:</span>
+          <button onclick="copySelectedVerses('zh')" class="hover:text-yellow-300 uppercase transition px-1" title="只複製選取的中文">中文</button>
+          <span class="text-zinc-600">/</span>
+          <button onclick="copySelectedVerses('en')" class="hover:text-yellow-300 uppercase transition px-1" title="只複製選取的英文">EN</button>
+          <span class="text-zinc-600">/</span>
+          <button onclick="copySelectedVerses('both')" class="hover:text-yellow-300 uppercase transition px-1" title="複製中英對照">雙語</button>
+        </div>
+
+        <button onclick="openBookmarkModalForSelected()" class="hover:text-yellow-300 uppercase transition">
+          BOOKMARK
+        </button>
+
+        <button onclick="openNoteForSelected()" class="hover:text-yellow-300 uppercase transition">
+          NOTE
+        </button>
+
+        <button onclick="clearVerseSelection()" class="text-zinc-500 hover:text-white pl-2">
+          ✕
         </button>
       </div>
 
-      <p class="text-xs text-stone-600 leading-relaxed">
-        本應用程式採用「自帶雲端 (BYOS)」模式，筆記與記錄直接儲存在您 Google 雲端硬碟的專屬應用空間（AppData），不會經過任何第三方伺服器。
-      </p>
+    </main>
+  </div>
 
-      <div class="space-y-3">
+  <!-- Modal: Single Verse Annotation (Minimal Stark Dialog) -->
+  <div id="verseNoteModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-lg w-full p-8 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-black pb-3">
+        <div class="text-xs font-mono-swiss uppercase tracking-widest text-zinc-500" id="verseNoteModalRef">
+          (VERSE NOTE)
+        </div>
+        <button onclick="closeVerseNoteModal()" class="text-black font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <div class="bg-[#f2f2f0] p-4 text-xs font-serif-tc text-zinc-800 leading-relaxed" id="verseNoteModalPreview">
+        經文預覽...
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-[11px] font-mono-swiss uppercase text-zinc-500 tracking-wider">OBSERVATION & APPLICATION:</label>
+        <textarea id="singleVerseNoteInput" rows="4" placeholder="Write personal reflections on this verse..." class="w-full p-3 text-xs bg-[#f2f2f0] border-0 focus:outline-none focus:ring-1 focus:ring-black font-serif-tc"></textarea>
+      </div>
+
+      <div class="flex space-x-3 pt-2 font-mono-swiss text-xs">
+        <button onclick="saveSingleVerseNote()" class="flex-1 py-3 bg-black text-white uppercase tracking-wider hover:bg-zinc-800 transition">
+          SAVE NOTE
+        </button>
+        <button onclick="closeVerseNoteModal()" class="px-5 py-3 text-zinc-600 hover:text-black uppercase">
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Bookmark Vault Dialog (Brutalist Type Layout) -->
+  <div id="bookmarkModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-lg w-full p-8 shadow-2xl space-y-6">
+      <div class="flex items-center justify-between border-b border-black pb-3">
+        <div class="text-xs font-mono-swiss uppercase tracking-widest text-zinc-500">
+          (BOOKMARK REPOSITORY)
+        </div>
+        <button onclick="closeBookmarkModal()" class="text-black font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <div class="bg-[#f2f2f0] p-4 text-xs font-serif-tc text-zinc-900 max-h-36 overflow-y-auto leading-relaxed" id="bookmarkPreviewRef">
+        約翰福音 第 14 章
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-[11px] font-mono-swiss uppercase text-zinc-500 tracking-wider">(CHOOSE YOUR CONTEXT)</div>
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono-swiss" id="tagSelectionGroup">
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="焦慮不安" class="situation-cb accent-black">
+            <span>焦慮不安時</span>
+          </label>
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="缺乏信心" class="situation-cb accent-black">
+            <span>缺乏信心時</span>
+          </label>
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="尋求引導" class="situation-cb accent-black">
+            <span>重大抉擇時</span>
+          </label>
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="人際衝突" class="situation-cb accent-black">
+            <span>人際饒恕時</span>
+          </label>
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="身體軟弱" class="situation-cb accent-black">
+            <span>身心低谷時</span>
+          </label>
+          <label class="flex items-center space-x-2 p-2 bg-[#f2f2f0] hover:bg-zinc-200 cursor-pointer">
+            <input type="checkbox" value="感恩讚美" class="situation-cb accent-black">
+            <span>數算恩典時</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <div class="text-[11px] font-mono-swiss uppercase text-zinc-500 tracking-wider">CUSTOM NOTE:</div>
+        <input type="text" id="customTagNote" placeholder="e.g. Read before challenging decisions..." class="w-full p-3 text-xs bg-[#f2f2f0] border-0 focus:outline-none focus:ring-1 focus:ring-black font-sans">
+      </div>
+
+      <div class="flex space-x-3 pt-2 font-mono-swiss text-xs">
+        <button onclick="saveBookmark()" class="flex-1 py-3 bg-black text-white uppercase tracking-wider hover:bg-zinc-800 transition">
+          STORE IN VAULT
+        </button>
+        <button onclick="closeBookmarkModal()" class="px-5 py-3 text-zinc-600 hover:text-black uppercase">
+          DISMISS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Full Bible Progress Matrix (Stark Minimalist Grid) -->
+  <div id="progressModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-8 hidden">
+    <div class="bg-white max-w-5xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden p-6 sm:p-10 space-y-6">
+      
+      <!-- Matrix Header -->
+      <div class="flex items-baseline justify-between border-b border-black pb-4 shrink-0">
         <div>
-          <label class="block text-xs font-semibold text-stone-700 mb-1">Google OAuth 2.0 Client ID</label>
+          <div class="text-xs font-mono-swiss uppercase text-zinc-400 tracking-widest">(WHOLE BIBLE MATRIX)</div>
+          <h2 class="font-headline font-black text-3xl sm:text-4xl tracking-tighter text-black mt-1">
+            *PROGRESS ARCHIVE
+          </h2>
+        </div>
+        <button onclick="closeProgressModal()" class="text-black font-bold font-mono-swiss text-sm">
+          [CLOSE]
+        </button>
+      </div>
+
+      <!-- Top Statistical Banner -->
+      <div class="grid grid-cols-3 gap-6 text-xs font-mono-swiss shrink-0">
+        <div>
+          <div class="text-zinc-400 uppercase text-[10px]">(ALL 1,189 CHAPTERS)</div>
+          <div class="font-headline font-black text-3xl text-black" id="modalTotalStats">0.0%</div>
+          <div class="w-full bg-zinc-200 h-1 mt-1">
+            <div id="modalTotalBar" class="bg-black h-1" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-zinc-400 uppercase text-[10px]">(OLD TESTAMENT · 929)</div>
+          <div class="font-headline font-black text-3xl text-black" id="modalOtStats">0.0%</div>
+          <div class="w-full bg-zinc-200 h-1 mt-1">
+            <div id="modalOtBar" class="bg-zinc-700 h-1" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-zinc-400 uppercase text-[10px]">(NEW TESTAMENT · 260)</div>
+          <div class="font-headline font-black text-3xl text-black" id="modalNtStats">0.0%</div>
+          <div class="w-full bg-zinc-200 h-1 mt-1">
+            <div id="modalNtBar" class="bg-green-500 h-1" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Row -->
+      <div class="flex items-center justify-between text-xs font-mono-swiss shrink-0 border-b border-zinc-100 pb-3">
+        <div class="flex items-center space-x-3" id="matrixFilterPills">
+          <button onclick="filterMatrixView('all')" class="font-bold underline text-black matrix-filter-btn" data-filter="all">ALL (66)</button>
+          <span class="text-zinc-300">/</span>
+          <button onclick="filterMatrixView('ot')" class="text-zinc-400 hover:text-black matrix-filter-btn" data-filter="ot">OT</button>
+          <span class="text-zinc-300">/</span>
+          <button onclick="filterMatrixView('nt')" class="text-zinc-400 hover:text-black matrix-filter-btn" data-filter="nt">NT</button>
+          <span class="text-zinc-300">/</span>
+          <button onclick="filterMatrixView('gospels')" class="text-zinc-400 hover:text-black matrix-filter-btn" data-filter="gospels">GOSPELS</button>
+          <span class="text-zinc-300">/</span>
+          <button onclick="filterMatrixView('pauline')" class="text-zinc-400 hover:text-black matrix-filter-btn" data-filter="pauline">PAULINE</button>
+          <span class="text-zinc-300">/</span>
+          <button onclick="filterMatrixView('wisdom')" class="text-zinc-400 hover:text-black matrix-filter-btn" data-filter="wisdom">WISDOM</button>
+        </div>
+
+        <div class="text-[10px] text-zinc-400 flex items-center space-x-3">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-black inline-block"></span> READ</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-zinc-200 inline-block"></span> UNREAD</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Matrix of Books -->
+      <div id="bibleMatrixContainer" class="flex-1 overflow-y-auto space-y-6 pr-2">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Google Client ID Connection Settings -->
+  <div id="authModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-md w-full p-8 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-black pb-3">
+        <div class="text-xs font-mono-swiss uppercase tracking-widest text-zinc-500">
+          (GOOGLE DRIVE BYOS)
+        </div>
+        <button onclick="closeAuthModal()" class="text-black font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs font-mono-swiss">
+        <div>
+          <label class="block text-zinc-500 uppercase text-[10px] mb-1">CLIENT ID:</label>
           <input 
             type="text" 
             id="clientIdInput" 
             value="865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com" 
-            placeholder="例如: 123456789-xxxxxx.apps.googleusercontent.com"
-            class="w-full p-2.5 text-xs rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-mono"
+            class="w-full p-3 text-xs bg-[#f2f2f0] border-0 focus:outline-none focus:ring-1 focus:ring-black font-mono-swiss text-black"
           />
         </div>
 
-        <div class="bg-amber-50 rounded-lg p-3 text-[11px] text-amber-900 leading-relaxed border border-amber-200/60">
-          <strong>如何取得 Client ID？</strong>
-          <ol class="list-decimal list-inside space-y-0.5 mt-1 text-amber-800">
-            <li>前往 Google Cloud Console 建立專案並啟用 Google Drive API。</li>
-            <li>在「OAuth 同意畫面」選擇外部並儲存。</li>
-            <li>「憑證」新增「OAuth 2.0 用戶端 ID」，應用程式類型選擇「網頁應用程式」。</li>
-            <li>在「已授權的 JavaScript 來源」填入你的 GitHub Pages 網址（例如：<code>https://username.github.io</code>）。</li>
-          </ol>
+        <div class="p-3 bg-[#f2f2f0] text-zinc-600 leading-relaxed text-[11px]">
+          您的資料直接同步至個人 Google 雲端硬碟的 AppData 專屬私密空間，保障隱私與資料主權。
         </div>
 
-        <!-- Connection actions -->
         <div class="pt-2 space-y-2">
-          <button onclick="saveAndSignInGoogle()" class="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-2">
-            <i data-lucide="log-in" class="w-4 h-4"></i> 儲存 Client ID 並登入 Google
+          <button onclick="saveAndSignInGoogle()" class="w-full py-3 bg-black text-white uppercase tracking-wider hover:bg-zinc-800 transition">
+            AUTHENTICATE WITH GOOGLE
           </button>
-          <button id="disconnectBtn" onclick="disconnectGoogle()" class="w-full py-2 border border-rose-200 text-rose-700 hover:bg-rose-50 font-medium text-xs rounded-lg transition hidden">
-            中斷 Google 帳號連線
+          <button id="disconnectBtn" onclick="disconnectGoogle()" class="w-full py-2 text-zinc-500 hover:text-black uppercase text-[11px] hidden">
+            DISCONNECT
           </button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Modal: Bookmark with Situation Tagging -->
-  <div id="bookmarkModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
-          <i data-lucide="bookmark-check" class="w-5 h-5 text-amber-700"></i> 加入情境錦囊
-        </h3>
-        <button onclick="closeBookmarkModal()" class="text-stone-400 hover:text-stone-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="bg-stone-50 p-3 rounded-lg border border-stone-200 text-xs text-stone-700 font-serif-tc" id="bookmarkPreviewRef">
-        約翰福音 14:27
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-stone-700 mb-1.5">選擇在遇到怎樣的困境或時刻可以重溫：</label>
-        <div class="grid grid-cols-2 gap-2 text-xs" id="tagSelectionGroup">
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="焦慮不安" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>😰 焦慮不安時</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="缺乏信心" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>🛡️ 缺乏信心時</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="尋求引導" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>🧭 面對重大抉擇時</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="人際衝突" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>🤝 人際受傷包容時</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="身體軟弱" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>🩹 身心疲憊低谷時</span>
-          </label>
-          <label class="flex items-center gap-2 p-2 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" value="感恩讚美" class="situation-cb text-amber-600 rounded focus:ring-0">
-            <span>✨ 感恩與數算恩典</span>
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-stone-700 mb-1">自訂標籤或一句備忘心得：</label>
-        <input type="text" id="customTagNote" placeholder="例如：每次面試前讀這句" class="w-full p-2 text-xs rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600">
-      </div>
-
-      <div class="pt-2 flex gap-2">
-        <button onclick="saveBookmark()" class="flex-1 py-2.5 bg-amber-800 hover:bg-amber-900 text-white font-medium text-xs rounded-lg transition">
-          儲存到情境錦囊
-        </button>
-        <button onclick="closeBookmarkModal()" class="px-4 py-2.5 border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs rounded-lg transition">
-          取消
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Share Scripture -->
-  <div id="shareModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-100 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="font-serif-tc font-bold text-lg text-stone-900 flex items-center gap-2">
-          <i data-lucide="share" class="w-5 h-5 text-amber-700"></i> 分享經文祝福
-        </h3>
-        <button onclick="closeShareModal()" class="text-stone-400 hover:text-stone-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Preview Card -->
-      <div id="shareCardPreview" class="p-5 rounded-xl bg-stone-100 border border-stone-200 text-stone-800 font-serif-tc text-sm leading-relaxed space-y-3">
-        <div id="shareTextContent">經文內容...</div>
-        <div class="text-right text-xs text-amber-900 font-bold" id="shareRefContent">—— 約翰福音 14:27</div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 pt-2">
-        <button onclick="copyShareText()" class="py-2.5 px-3 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-1.5">
-          <i data-lucide="copy" class="w-4 h-4"></i> 複製經文文字
-        </button>
-        <button onclick="nativeShare()" class="py-2.5 px-3 border border-stone-300 hover:bg-stone-50 text-stone-700 font-medium text-xs rounded-lg transition flex items-center justify-center gap-1.5">
-          <i data-lucide="send" class="w-4 h-4"></i> 呼叫系統分享
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <footer class="mt-auto py-6 border-t border-stone-200 text-center text-xs text-stone-400">
-    靜沐靈光 · 基於聖經公版譯本與 Google Drive AppData BYOS 架構
-  </footer>
 
   <script>
     /* ========================================================
-       1. 30 天靈修經文計畫預設清單 (可擴充)
+       1. 聖經 66 卷資料庫
        ======================================================== */
-    const DEVOTIONAL_PLAN = [
-      { day: 1, ref: "John 14:27", zhRef: "約翰福音 14:27", theme: "耶穌所賜出人意外的平安" },
-      { day: 2, ref: "Philippians 4:6-7", zhRef: "腓立比書 4:6-7", theme: "應當一無挂慮，藉禱告交託" },
-      { day: 3, ref: "Isaiah 41:10", zhRef: "以賽亞書 41:10", theme: "不要懼怕，因為我與你同在" },
-      { day: 4, ref: "Psalm 23:1-6", zhRef: "詩篇 23:1-6", theme: "耶和華是我的牧者，我必不致缺乏" },
-      { day: 5, ref: "Proverbs 3:5-6", zhRef: "箴言 3:5-6", theme: "專心仰賴耶和華，不倚靠自己的聰明" },
-      { day: 6, ref: "Matthew 11:28-30", zhRef: "馬太福音 11:28-30", theme: "凡勞苦擔重擔的人，到我這裡得安息" },
-      { day: 7, ref: "Romans 8:28", zhRef: "羅馬書 8:28", theme: "萬事都互相效力，叫愛神的人得益處" },
-      { day: 8, ref: "Joshua 1:9", zhRef: "約書亞記 1:9", theme: "你當剛強壯膽，不要懼怕也不要驚惶" },
-      { day: 9, ref: "Psalm 46:1-3", zhRef: "詩篇 46:1-3", theme: "神是我們的避難所，是我們的力量" },
-      { day: 10, ref: "Jeremiah 29:11", zhRef: "耶利米書 29:11", theme: "賜平安的意念，叫你們末後有指望" },
-      { day: 11, ref: "Hebrews 11:1", zhRef: "希伯來書 11:1", theme: "信就是所望之事的實底" },
-      { day: 12, ref: "2 Corinthians 12:9", zhRef: "哥林多後書 12:9", theme: "我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全" },
-      { day: 13, ref: "Psalm 121:1-8", zhRef: "詩篇 121:1-8", theme: "我的幫助從造天地的耶和華而來" },
-      { day: 14, ref: "Lamentations 3:22-23", zhRef: "耶利米哀歌 3:22-23", theme: "每早晨，這都是新的；你的誠實極其廣大" },
-      { day: 15, ref: "Psalm 27:1", zhRef: "詩篇 27:1", theme: "耶和華是我的亮光，是我的拯救，我還怕誰呢" },
-      { day: 16, ref: "Romans 12:2", zhRef: "羅馬書 12:2", theme: "心意更新而變化，察驗何為神的善良純全" },
-      { day: 17, ref: "Galatians 5:22-23", zhRef: "加拉太書 5:22-23", theme: "聖靈所結的果子：仁愛、喜樂、和平" },
-      { day: 18, ref: "Psalm 91:1-4", zhRef: "詩篇 91:1-4", theme: "住在至高者隱密處的，必住在全能者的蔭下" },
-      { day: 19, ref: "Matthew 6:33-34", zhRef: "馬太福音 6:33-34", theme: "先求祂的國和祂的義，不要為明天憂慮" },
-      { day: 20, ref: "Isaiah 40:31", zhRef: "以賽亞書 40:31", theme: "等候耶和華的必重新得力，如鷹展翅上騰" },
-      { day: 21, ref: "James 1:2-4", zhRef: "雅各書 1:2-4", theme: "信心經過試驗就生忍耐" },
-      { day: 22, ref: "Ephesians 6:10-18", zhRef: "以弗所書 6:10-13", theme: "穿戴神所賜的全副軍裝" },
-      { day: 23, ref: "Psalm 103:1-5", zhRef: "詩篇 103:1-5", theme: "我的心哪，你要稱頌耶和華，不可忘記祂的一切恩惠" },
-      { day: 24, ref: "1 Thessalonians 5:16-18", zhRef: "帖撒羅尼迦前書 5:16-18", theme: "要常常喜樂，不住的禱告，凡事謝恩" },
-      { day: 25, ref: "Colossians 3:12-14", zhRef: "歌羅西書 3:12-14", theme: "存憐憫、恩慈、謙虛、溫柔、忍耐的心" },
-      { day: 26, ref: "Psalm 119:105", zhRef: "詩篇 119:105", theme: "你的話是我腳前的燈，是我路上的光" },
-      { day: 27, ref: "1 Peter 5:7", zhRef: "彼得前書 5:7", theme: "你們要將一切的憂慮卸給神，因為祂顧念你們" },
-      { day: 28, ref: "John 15:5", zhRef: "約翰福音 15:5", theme: "我是葡萄樹，你們是枝子，常在我裡面的，我也常在他裡面" },
-      { day: 29, ref: "Micah 6:8", zhRef: "彌迦書 6:8", theme: "行公義，好憐憫，存謙卑的心，與你的神同行" },
-      { day: 30, ref: "Revelation 21:4", zhRef: "啟示錄 21:4", theme: "神要擦去他們一切的眼淚，不再有死亡，也不再有悲哀哭號" }
+    const BIBLE_BOOKS = [
+      // 舊約 (39 卷 - 929 章)
+      { id: 1, zh: "創世記", en: "Genesis", enShort: "Gen", chapters: 50, test: "ot", cat: "law" },
+      { id: 2, zh: "出埃及記", en: "Exodus", enShort: "Exo", chapters: 40, test: "ot", cat: "law" },
+      { id: 3, zh: "利未記", en: "Leviticus", enShort: "Lev", chapters: 27, test: "ot", cat: "law" },
+      { id: 4, zh: "民數記", en: "Numbers", enShort: "Num", chapters: 36, test: "ot", cat: "law" },
+      { id: 5, zh: "申命記", en: "Deuteronomy", enShort: "Deu", chapters: 34, test: "ot", cat: "law" },
+      { id: 6, zh: "約書亞記", en: "Joshua", enShort: "Jos", chapters: 24, test: "ot", cat: "history" },
+      { id: 7, zh: "士師記", en: "Judges", enShort: "Jdg", chapters: 21, test: "ot", cat: "history" },
+      { id: 8, zh: "路得記", en: "Ruth", enShort: "Rut", chapters: 4, test: "ot", cat: "history" },
+      { id: 9, zh: "撒母耳記上", en: "1 Samuel", enShort: "1Sa", chapters: 31, test: "ot", cat: "history" },
+      { id: 10, zh: "撒母耳記下", en: "2 Samuel", enShort: "2Sa", chapters: 24, test: "ot", cat: "history" },
+      { id: 11, zh: "列王紀上", en: "1 Kings", enShort: "1Ki", chapters: 22, test: "ot", cat: "history" },
+      { id: 12, zh: "列王紀下", en: "2 Kings", enShort: "2Ki", chapters: 25, test: "ot", cat: "history" },
+      { id: 13, zh: "歷代志上", en: "1 Chronicles", enShort: "1Ch", chapters: 29, test: "ot", cat: "history" },
+      { id: 14, zh: "歷代志下", en: "2 Chronicles", enShort: "2Ch", chapters: 36, test: "ot", cat: "history" },
+      { id: 15, zh: "以斯拉記", en: "Ezra", enShort: "Ezr", chapters: 10, test: "ot", cat: "history" },
+      { id: 16, zh: "尼希米記", en: "Nehemiah", enShort: "Neh", chapters: 13, test: "ot", cat: "history" },
+      { id: 17, zh: "以斯帖記", en: "Esther", enShort: "Est", chapters: 10, test: "ot", cat: "history" },
+      { id: 18, zh: "約伯記", en: "Job", enShort: "Job", chapters: 42, test: "ot", cat: "wisdom" },
+      { id: 19, zh: "詩篇", en: "Psalms", enShort: "Psa", chapters: 150, test: "ot", cat: "wisdom" },
+      { id: 20, zh: "箴言", en: "Proverbs", enShort: "Pro", chapters: 31, test: "ot", cat: "wisdom" },
+      { id: 21, zh: "傳道書", en: "Ecclesiastes", enShort: "Ecc", chapters: 12, test: "ot", cat: "wisdom" },
+      { id: 22, zh: "雅歌", en: "Song of Solomon", enShort: "Sng", chapters: 8, test: "ot", cat: "wisdom" },
+      { id: 23, zh: "以賽亞書", en: "Isaiah", enShort: "Isa", chapters: 66, test: "ot", cat: "prophets" },
+      { id: 24, zh: "耶利米書", en: "Jeremiah", enShort: "Jer", chapters: 52, test: "ot", cat: "prophets" },
+      { id: 25, zh: "耶利米哀歌", en: "Lamentations", enShort: "Lam", chapters: 5, test: "ot", cat: "prophets" },
+      { id: 26, zh: "以西結書", en: "Ezekiel", enShort: "Ezk", chapters: 48, test: "ot", cat: "prophets" },
+      { id: 27, zh: "但以理書", en: "Daniel", enShort: "Dan", chapters: 12, test: "ot", cat: "prophets" },
+      { id: 28, zh: "何西阿書", en: "Hosea", enShort: "Hos", chapters: 14, test: "ot", cat: "prophets" },
+      { id: 29, zh: "約珥書", en: "Joel", enShort: "Jol", chapters: 3, test: "ot", cat: "prophets" },
+      { id: 30, zh: "阿摩司書", en: "Amos", enShort: "Amo", chapters: 9, test: "ot", cat: "prophets" },
+      { id: 31, zh: "俄巴底亞書", en: "Obadiah", enShort: "Oba", chapters: 1, test: "ot", cat: "prophets" },
+      { id: 32, zh: "約拿書", en: "Jonah", enShort: "Jon", chapters: 4, test: "ot", cat: "prophets" },
+      { id: 33, zh: "彌迦書", en: "Micah", enShort: "Mic", chapters: 7, test: "ot", cat: "prophets" },
+      { id: 34, zh: "那鴻書", en: "Nahum", enShort: "Nam", chapters: 3, test: "ot", cat: "prophets" },
+      { id: 35, zh: "哈巴谷書", en: "Habakkuk", enShort: "Hab", chapters: 3, test: "ot", cat: "prophets" },
+      { id: 36, zh: "西番雅書", en: "Zephaniah", enShort: "Zep", chapters: 3, test: "ot", cat: "prophets" },
+      { id: 37, zh: "哈該書", en: "Haggai", enShort: "Hag", chapters: 2, test: "ot", cat: "prophets" },
+      { id: 38, zh: "撒迦利亞書", en: "Zechariah", enShort: "Zec", chapters: 14, test: "ot", cat: "prophets" },
+      { id: 39, zh: "瑪拉基書", en: "Malachi", enShort: "Mal", chapters: 4, test: "ot", cat: "prophets" },
+      // 新約 (27 卷 - 260 章)
+      { id: 40, zh: "馬太福音", en: "Matthew", enShort: "Mat", chapters: 28, test: "nt", cat: "gospels" },
+      { id: 41, zh: "馬可福音", en: "Mark", enShort: "Mrk", chapters: 16, test: "nt", cat: "gospels" },
+      { id: 42, zh: "路加福音", en: "Luke", enShort: "Luk", chapters: 24, test: "nt", cat: "gospels" },
+      { id: 43, zh: "約翰福音", en: "John", enShort: "Jhn", chapters: 21, test: "nt", cat: "gospels" },
+      { id: 44, zh: "使徒行傳", en: "Acts", enShort: "Act", chapters: 28, test: "nt", cat: "acts" },
+      { id: 45, zh: "羅馬書", en: "Romans", enShort: "Rom", chapters: 16, test: "nt", cat: "pauline" },
+      { id: 46, zh: "哥林多前書", en: "1 Corinthians", enShort: "1Co", chapters: 16, test: "nt", cat: "pauline" },
+      { id: 47, zh: "哥林多後書", en: "2 Corinthians", enShort: "2Co", chapters: 13, test: "nt", cat: "pauline" },
+      { id: 48, zh: "加拉太書", en: "Galatians", enShort: "Gal", chapters: 6, test: "nt", cat: "pauline" },
+      { id: 49, zh: "以弗所書", en: "Ephesians", enShort: "Eph", chapters: 6, test: "nt", cat: "pauline" },
+      { id: 50, zh: "腓立比書", en: "Philippians", enShort: "Php", chapters: 4, test: "nt", cat: "pauline" },
+      { id: 51, zh: "歌羅西書", en: "Colossians", enShort: "Col", chapters: 4, test: "nt", cat: "pauline" },
+      { id: 52, zh: "帖撒羅尼迦前書", en: "1 Thessalonians", enShort: "1Th", chapters: 5, test: "nt", cat: "pauline" },
+      { id: 53, zh: "帖撒羅尼迦後書", en: "2 Thessalonians", enShort: "2Th", chapters: 3, test: "nt", cat: "pauline" },
+      { id: 54, zh: "提摩太前書", en: "1 Timothy", enShort: "1Ti", chapters: 6, test: "nt", cat: "pauline" },
+      { id: 55, zh: "提摩太後書", en: "2 Timothy", enShort: "2Ti", chapters: 4, test: "nt", cat: "pauline" },
+      { id: 56, zh: "提多書", en: "Titus", enShort: "Tit", chapters: 3, test: "nt", cat: "pauline" },
+      { id: 57, zh: "腓利門書", en: "Philemon", enShort: "Phm", chapters: 1, test: "nt", cat: "pauline" },
+      { id: 58, zh: "希伯來書", en: "Hebrews", enShort: "Heb", chapters: 13, test: "nt", cat: "general" },
+      { id: 59, zh: "雅各書", en: "James", enShort: "Jas", chapters: 5, test: "nt", cat: "general" },
+      { id: 60, zh: "彼得前書", en: "1 Peter", enShort: "1Pe", chapters: 5, test: "nt", cat: "general" },
+      { id: 61, zh: "彼得後書", en: "2 Peter", enShort: "2Pe", chapters: 3, test: "nt", cat: "general" },
+      { id: 62, zh: "約翰一書", en: "1 John", enShort: "1Jn", chapters: 5, test: "nt", cat: "general" },
+      { id: 63, zh: "約翰二書", en: "2 John", enShort: "2Jn", chapters: 1, test: "nt", cat: "general" },
+      { id: 64, zh: "約翰三書", en: "3 John", enShort: "3Jn", chapters: 1, test: "nt", cat: "general" },
+      { id: 65, zh: "猶大書", en: "Jude", enShort: "Jud", chapters: 1, test: "nt", cat: "general" },
+      { id: 66, zh: "啟示錄", en: "Revelation", enShort: "Rev", chapters: 22, test: "nt", cat: "revelation" }
     ];
 
-    /* ========================================================
-       2. 資料模型與應用程式狀態
+
+/* ========================================================
+       聖經 66 卷全書卷主題大綱與章節分段小標題庫
        ======================================================== */
-    const STORAGE_KEY = "devotional_bible_app_data_v1";
+    const BOOK_THEMES = {
+      1: "創世起源、墮落與列祖之約",
+      2: "出埃及得救贖、會幕與律例",
+      3: "聖潔生活、祭司條例與五祭",
+      4: "曠野行軍試煉、數點百姓與信靠",
+      5: "重申律法、生死禍福的抉擇",
+      6: "進應許地、爭戰得勝與分地",
+      7: "士師秉政、以色列人受壓與蒙拯救",
+      8: "恩典與救贖、波阿斯與路得的佳話",
+      9: "撒母耳與掃羅、王國的建立與興衰",
+      10: "大衛作王、合神心意與恩約",
+      11: "所羅門榮耀建殿與王國分裂",
+      12: "南北兩國列王歷史與被擄",
+      13: "大衛王位、聖殿敬拜譜系",
+      14: "所羅門智慧與猶大諸王興革",
+      15: "歸回耶路撒冷、重建聖殿",
+      16: "重修耶路撒冷城牆與屬靈復興",
+      17: "神隱密的護佑與普珥日的拯救",
+      18: "苦難的奧祕、信心試煉與神的智慧",
+      19: "讚美稱頌、哀歌祈禱與生命頌歌",
+      20: "敬畏耶和華是智慧的開端",
+      21: "虛空的虛空、凡事有定期與敬畏神",
+      22: "基督與教會的良人佳偶之愛",
+      23: "審判與救贖的先知預言、受苦僕人",
+      24: "淚眼先知、新約的應許與悔改呼召",
+      25: "耶路撒冷傾覆的哀歌與晨晨新的慈愛",
+      26: "神的榮耀離去與歸回、榮耀聖殿異象",
+      27: "神掌管萬國歷史、火窯與獅子坑的得勝",
+      28: "神對背道之民的不離不棄慈愛",
+      29: "耶和華的日子與聖靈澆灌的應許",
+      30: "行公義與審判鄰國的公義呼召",
+      31: "以東的驕傲與神的公義審判",
+      32: "約拿逃避與神對尼尼微的大憐憫",
+      33: "行公義好憐憫存謙卑的心同行",
+      34: "尼尼微的傾覆與神的公義威嚴",
+      35: "惟義人因信得生、無花果樹不發旺仍歡欣",
+      36: "耶和華隱密之日與公義的洗滌",
+      37: "萬軍之耶和華說：重建聖殿必蒙福",
+      38: "彌賽亞降臨、騎驢進京與萬國敬拜",
+      39: "立約的使者、十一奉獻與公義日頭興起",
+      40: "天國君王彌賽亞的降生、教導與受難",
+      41: "受苦的僕人基督：立刻順服與犧牲服事",
+      42: "人子基督：尋找拯救失喪的人",
+      43: "道成肉身、真理生命與信者得永生",
+      44: "聖靈降臨、門徒放膽見證建立教會",
+      45: "因信稱義的福音奧祕與基督裡的榮耀",
+      46: "在教會分裂與恩賜紛爭中追求愛的真諦",
+      47: "瓦器中的寶貝、和好的職分與恩典充足",
+      48: "因信得自由、不再作奴僕而作真兒女",
+      49: "在基督裡的豐盛奧祕與穿戴全副軍裝",
+      50: "在任何境遇中靠主常常喜樂一無罣慮",
+      51: "基督是一切、穿上新人慈愛溫柔的樣式",
+      52: "活在末世主必再來的榮耀盼望中",
+      53: "警醒等候主再來、抵擋不法之人的誘惑",
+      54: "守住真道、作神家中忠心的工人與牧養",
+      55: "當剛強壯膽、打過美好的仗跑盡當跑的路",
+      56: "按真理設立長老、在善行中顯出恩典",
+      57: "主內肢體的接納：在愛中寬恕腓利門",
+      58: "基督超越摩西、亞倫與天使；信心長廊",
+      59: "信心與行為並重、試煉中的忍耐與勒住舌頭",
+      60: "火煉試驗中的活潑盼望與順服基督",
+      61: "在恩典與知識上長進、防備假教師假先知",
+      62: "在光明與真理中彼此相愛、得著神兒女的確據",
+      63: "按真理而行、彼此相愛與持守純正教訓",
+      64: "同心接待宣道弟兄、在真理中一同作工",
+      65: "竭力持守真道、神能保守你們不失腳",
+      66: "新天新地、羔羊得勝、不再有死亡與眼淚"
+    };
+
+    const CHAPTER_HEADINGS = {
+      // 民數記 22 章 (即使用者截圖章節)
+      "4-22": {
+        titleZh: "巴勒召巴蘭 · 耶和華使驢開口說話",
+        titleEn: "BALAK SENDS FOR BALAAM & THE DONKEY SPEAKS",
+        sections: {
+          1: { zh: "摩押王巴勒差使重金召巴蘭", en: "Balak Sends for Balaam" },
+          21: { zh: "耶和華的使者拔刀阻擋 · 驢開口說話", en: "The Angel of the Lord & Balaam's Donkey Speaks" },
+          36: { zh: "巴勒迎接巴蘭於摩押邊界", en: "Balak Meets Balaam" }
+        }
+      },
+      "4-23": {
+        titleZh: "巴蘭築壇獻祭 · 宣告不容咒詛的第一與第二次歌詩",
+        titleEn: "BALAAM'S FIRST AND SECOND PROPHECIES",
+        sections: {
+          1: { zh: "巴蘭第一次作歌祝福以色列", en: "Balaam's First Prophecy" },
+          13: { zh: "巴蘭第二次作歌：上帝非人必不致說謊", en: "Balaam's Second Prophecy" }
+        }
+      },
+      "4-24": {
+        titleZh: "巴蘭見異象稱謝雅各 · 預言星出於雅各杖出於以色列",
+        titleEn: "BALAAM'S STAR OUT OF JACOB",
+        sections: {
+          1: { zh: "巴蘭第三次作歌祝福雅各帳幕", en: "Balaam's Third Prophecy" },
+          15: { zh: "巴蘭第四次作歌預言有星出於雅各", en: "A Star Shall Come out of Jacob" }
+        }
+      },
+      // 創世記
+      "1-1": { titleZh: "神的創造大工", titleEn: "THE CREATION OF HEAVEN AND EARTH", sections: { 1: { zh: "起初上帝創造天地", en: "The Creation of the World" }, 26: { zh: "上帝造男造女", en: "Creation of Humankind" } } },
+      "1-2": { titleZh: "安息日與伊甸園", titleEn: "THE SEVENTH DAY AND EDEN", sections: { 1: { zh: "第七日定為聖日", en: "The Sabbath" }, 4: { zh: "伊甸園與生命樹", en: "The Garden of Eden" }, 18: { zh: "設立婚姻的奧祕", en: "Creation of Woman" } } },
+      "1-3": { titleZh: "人的背叛與救贖應許", titleEn: "THE FALL OF MAN", sections: { 1: { zh: "始祖違命受誘惑", en: "The Fall" }, 14: { zh: "上帝的審判與女人的後裔", en: "The Judgment and Promise" } } },
+      "1-12": { titleZh: "亞伯蘭蒙召與應許之約", titleEn: "THE CALL OF ABRAM", sections: { 1: { zh: "耶和華呼召亞伯蘭", en: "The Call of Abram" }, 10: { zh: "亞伯蘭下埃及", en: "Abram in Egypt" } } },
+      // 出埃及記
+      "2-3": { titleZh: "摩西在荊棘火焰中蒙召", titleEn: "THE BURNING BUSH", sections: { 1: { zh: "火中荊棘的異象", en: "The Burning Bush" }, 13: { zh: "我是自有永有的宣告", en: "I AM WHO I AM" } } },
+      "2-14": { titleZh: "過紅海神蹟：仇敵淹沒主施拯救", titleEn: "CROSSING THE RED SEA", sections: { 1: { zh: "以色列人往前行", en: "Trapped at the Sea" }, 15: { zh: "紅海分開作牆垣", en: "The Waters Divided" } } },
+      "2-20": { titleZh: "西奈山頒布十條誡命", titleEn: "THE TEN COMMANDMENTS", sections: { 1: { zh: "上帝頒布十誡", en: "The Ten Commandments" }, 18: { zh: "百姓懼怕敬畏耶和華", en: "The Fear of the Lord" } } },
+      // 詩篇
+      "19-1": { titleZh: "義人與惡人的道路對比", titleEn: "THE TWO WAYS", sections: { 1: { zh: "惟喜愛耶和華的律法便為有福", en: "The Way of the Righteous" }, 4: { zh: "惡人乃像糠秕被風吹散", en: "The Way of the Wicked" } } },
+      "19-23": { titleZh: "大衛的詩：牧者之歌", titleEn: "THE LORD IS MY SHEPHERD", sections: { 1: { zh: "耶和華是我的牧者", en: "The Lord is My Shepherd" } } },
+      "19-91": { titleZh: "至高者的隱密處與避難所", titleEn: "ABIDING UNDER THE SHADOW OF THE ALMIGHTY", sections: { 1: { zh: "全能者的蔭下", en: "Safe in God's Protection" }, 14: { zh: "神的拯救應許", en: "The Lord's Assurance" } } },
+      "19-103": { titleZh: "數算主恩：稱頌耶和華的一切恩惠", titleEn: "PRAISE FOR THE LORD'S MERCIES", sections: { 1: { zh: "稱頌耶和華不可忘記恩惠", en: "Bless the Lord, O My Soul" }, 8: { zh: "耶和華有憐憫與豐盛慈愛", en: "The Lord's Compassion" } } },
+      "19-119": { titleZh: "神話語的頌歌：腳前的燈路上的光", titleEn: "THE EXCELLENCE OF GOD'S WORD", sections: { 1: { zh: "遵行律法的人便為有福", en: "Blessed Are the Undefiled" }, 9: { zh: "少年人如何潔淨行為", en: "Cleansing the Way" }, 105: { zh: "祢的話是我腳前的燈", en: "A Lamp unto My Feet" } } },
+      "19-139": { titleZh: "全知全在的主深知我心", titleEn: "GOD'S ALL-SEEING PROVIDENCE", sections: { 1: { zh: "主洞察我的起坐意念", en: "The All-Knowing God" }, 13: { zh: "受造奇妙可畏", en: "Fearfully and Wonderfully Made" }, 23: { zh: "求神鑒察引導永生的路", en: "Search Me, O God" } } },
+      // 箴言
+      "20-3": { titleZh: "專心仰賴耶和華認定祂", titleEn: "TRUST IN THE LORD WITH ALL YOUR HEART", sections: { 1: { zh: "不可忘記神的法則", en: "Guidance for the Young" }, 5: { zh: "專心仰賴認定主", en: "Trust in the Lord" }, 13: { zh: "得著智慧便為有福", en: "The Value of Wisdom" } } },
+      "20-4": { titleZh: "保守你心勝過保守一切", titleEn: "KEEP THY HEART WITH ALL DILIGENCE", sections: { 1: { zh: "當聽父親的教訓", en: "A Father's Instruction" }, 20: { zh: "你要保守你心勝過一切", en: "Watch over Your Heart" } } },
+      // 以賽亞書
+      "23-40": { titleZh: "安慰我的百姓 · 等候耶和華的必重新得力", titleEn: "COMFORT MY PEOPLE · RENEWING STRENGTH", sections: { 1: { zh: "安慰百姓的恩言", en: "Comfort for God's People" }, 12: { zh: "偉大全能的創作者", en: "The Incomparable God" }, 27: { zh: "如鷹展翅上騰重新得力", en: "Renewing Strength Like the Eagle" } } },
+      "23-53": { titleZh: "受苦的僕人：因祂受的鞭傷我們得醫治", titleEn: "THE SUFFERING SERVANT", sections: { 1: { zh: "受藐視的僕人", en: "Despised and Rejected" }, 4: { zh: "祂擔當我們的憂患背負罪孽", en: "He Borne Our Griefs" }, 10: { zh: "耶和華定意將祂壓傷作贖罪祭", en: "The Sin Offering" } } },
+      // 馬太福音
+      "40-5": { titleZh: "登山寶訓：天國八福與新約之義", titleEn: "THE SERMON ON THE MOUNT: THE BEATITUDES", sections: { 1: { zh: "論天國八福", en: "The Beatitudes" }, 13: { zh: "世上的鹽與光", en: "Salt and Light" }, 17: { zh: "成全律法與先知的義", en: "Fulfilling the Law" }, 21: { zh: "論發怒與和好", en: "Reconciliation" }, 27: { zh: "論潔淨內心的意念", en: "Purity of Heart" }, 43: { zh: "愛仇敵的完全樣式", en: "Love for Enemies" } } },
+      "40-6": { titleZh: "隱密處的禱告與卸下憂慮", titleEn: "THE LORD'S PRAYER & SEEKING GOD'S KINGDOM", sections: { 1: { zh: "論施捨與行善", en: "Giving to the Needy" }, 5: { zh: "主教導的主禱文", en: "The Lord's Prayer" }, 19: { zh: "積攢財寶在天上", en: "Treasures in Heaven" }, 25: { zh: "不要為生命憂慮吃穿", en: "Do Not Worry" }, 33: { zh: "先求神的國和祂的義", en: "Seek First His Kingdom" } } },
+      "40-7": { titleZh: "窄門窄路與建造在磐石上的根基", titleEn: "THE NARROW GATE & BUILDING ON THE ROCK", sections: { 1: { zh: "論不要論斷人", en: "Judging Others" }, 7: { zh: "祈求尋找叩門的應許", en: "Ask, Seek, Knock" }, 13: { zh: "進窄門走窄路", en: "The Narrow Gate" }, 24: { zh: "蓋在磐石與沙土上的房子", en: "The Wise and Foolish Builders" } } },
+      "40-28": { titleZh: "基督復活與頒布大使命", titleEn: "THE RESURRECTION & THE GREAT COMMISSION", sections: { 1: { zh: "主耶穌榮耀復活", en: "The Resurrection" }, 16: { zh: "往普天下去頒布大使命", en: "The Great Commission" } } },
+      // 路加福音
+      "42-2": { titleZh: "耶穌降生於伯利恆與天使報佳音", titleEn: "THE BIRTH OF JESUS", sections: { 1: { zh: "救主降生馬槽", en: "The Birth of Jesus" }, 8: { zh: "野地牧羊人與大喜的信息", en: "The Shepherds and Angels" } } },
+      "42-15": { titleZh: "天父尋回失喪者的三大比喻", titleEn: "THE PARABLES OF THE LOST", sections: { 1: { zh: "失羊的比喻：一人悔改天上的歡喜", en: "The Parable of the Lost Sheep" }, 8: { zh: "失錢的比喻：點燈細細尋找", en: "The Parable of the Lost Coin" }, 11: { zh: "浪子回頭的比喻：無條件的慈父之愛", en: "The Parable of the Prodigal Son" } } },
+      // 約翰福音
+      "43-1": { titleZh: "太初有道：道成肉身與施洗約翰的見證", titleEn: "THE WORD BECAME FLESH", sections: { 1: { zh: "太初有道道與神同在", en: "The Word Became Flesh" }, 19: { zh: "施洗約翰的曠野呼聲", en: "The Testimony of John the Baptist" }, 35: { zh: "呼召第一批門徒", en: "Calling of the First Disciples" } } },
+      "43-3": { titleZh: "重生之道與神愛世人", titleEn: "REBIRTH & GOD SO LOVED THE WORLD", sections: { 1: { zh: "耶穌向尼哥底母論重生", en: "Jesus and Nicodemus" }, 16: { zh: "神愛世人賜下獨生子", en: "For God So Loved the World" }, 22: { zh: "祂必興旺我必衰微", en: "He Must Increase, I Must Decrease" } } },
+      "43-14": { titleZh: "道路真理生命 · 應許賜下保惠師與平安", titleEn: "THE WAY, THE TRUTH, AND THE LIFE", sections: { 1: { zh: "耶穌是道路、真理、生命", en: "Jesus the Way to the Father" }, 15: { zh: "應許賜下保惠師聖靈", en: "The Promise of the Holy Spirit" }, 27: { zh: "留給門徒出人意外的平安", en: "Peace I Leave with You" } } },
+      "43-15": { titleZh: "真葡萄樹與枝子 · 彼此相愛的命令", titleEn: "THE VINE AND THE BRANCHES", sections: { 1: { zh: "常在主裡面多結果子", en: "The Vine and the Branches" }, 12: { zh: "你們要彼此相愛如同我愛你們", en: "Love One Another" }, 18: { zh: "世人的恨惡與保惠師的見證", en: "The World Hates the Disciples" } } },
+      // 羅馬書
+      "45-8": { titleZh: "隨從聖靈的新生 · 萬事互相效力與基督的愛", titleEn: "LIFE IN THE SPIRIT · MORE THAN CONQUERORS", sections: { 1: { zh: "在基督耶穌裡不再定罪", en: "Free from Condemnation" }, 14: { zh: "神兒女的確據與呼叫阿爸父", en: "Children of God" }, 26: { zh: "聖靈親自替我們代求", en: "The Spirit Helps in Weakness" }, 28: { zh: "萬事互相效力叫愛神的人得益處", en: "All Things Work for Good" }, 31: { zh: "誰也不能使我們與基督的愛隔絕", en: "Nothing Can Separate Us from God's Love" } } },
+      "45-12": { titleZh: "獻上活祭的生命奉獻與彼此相顧", titleEn: "LIVING SACRIFICES & DAILY VIRTUES", sections: { 1: { zh: "將身體獻上當作活祭", en: "A Living Sacrifice" }, 3: { zh: "各盡其職合一的肢體", en: "One Body with Many Gifts" }, 9: { zh: "愛不可虛假以善勝惡", en: "Marks of the True Christian" } } },
+      // 哥林多前書
+      "46-13": { titleZh: "愛的真諦頌歌：愛是永不止息", titleEn: "THE GREATEST GIFT: LOVE NEVER FAILS", sections: { 1: { zh: "沒有愛一切恩賜都屬徒然", en: "The Necessity of Love" }, 4: { zh: "愛的真諦恆久忍耐", en: "The Character of Love" }, 8: { zh: "愛是永不止息如今常存的有信有望有愛", en: "Love Never Ends" } } },
+      // 以弗所書
+      "49-1": { titleZh: "基督裡的屬靈福氣與榮耀的基業", titleEn: "SPIRITUAL BLESSINGS IN CHRIST", sections: { 1: { zh: "天上各樣屬靈的福氣", en: "Praise for Spiritual Blessings" }, 15: { zh: "為門徒心眼得開的禱告", en: "Thanksgiving and Prayer" } } },
+      "49-6": { titleZh: "穿戴神所賜的全副軍裝", titleEn: "THE WHOLE ARMOR OF GOD", sections: { 1: { zh: "家庭與主僕相待之理", en: "Children and Parents" }, 10: { zh: "穿戴全副軍裝抵擋仇敵", en: "The Whole Armor of God" }, 18: { zh: "靠著聖靈隨時多方禱告祈求", en: "Praying Always in the Spirit" } } },
+      // 腓立比書
+      "50-2": { titleZh: "以基督耶穌的心為心 · 明光照耀", titleEn: "IMITATING CHRIST'S HUMILITY", sections: { 1: { zh: "同心合意存心謙卑", en: "Unity and Humility" }, 5: { zh: "以基督的心為心降卑與升高", en: "Christ's Example of Humility" }, 12: { zh: "如明光照耀將生命的道表明出來", en: "Shining as Lights in the World" } } },
+      "50-4": { titleZh: "一無罣慮的喜樂交託與知足秘訣", titleEn: "REJOICING, PRAYER AND CONTENTMENT", sections: { 1: { zh: "應當一無罣慮凡事藉禱告交託", en: "Rejoice in the Lord Always" }, 10: { zh: "凡事隨處都得了知足的秘訣", en: "God's Provision and Contentment" } } },
+      // 希伯來書
+      "58-11": { titleZh: "信心長廊：信是所望之事的實底", titleEn: "THE HALL OF FAITH", sections: { 1: { zh: "信就是所望之事的實底", en: "Faith in Action" }, 8: { zh: "亞伯拉罕因著信往前行", en: "The Faith of Abraham" }, 29: { zh: "摩西與歷代信心的見證人", en: "Faith Overcoming the World" } } },
+      "58-12": { titleZh: "仰望創始成終的耶穌奔跑前路", titleEn: "LOOKING UNTO JESUS, AUTHOR OF FAITH", sections: { 1: { zh: "仰望信心創始成終的耶穌", en: "Looking unto Jesus" }, 18: { zh: "來到天上的耶路撒冷與不震動的國", en: "The Kingdom That Cannot Be Shaken" } } },
+      // 雅各書
+      "59-1": { titleZh: "試煉中的忍耐智慧與聽道行道", titleEn: "TESTING OF FAITH & DOERS OF THE WORD", sections: { 1: { zh: "百般試煉生出純全忍耐", en: "Trials and Temptations" }, 19: { zh: "只要聽道也要行道", en: "Listening and Doing" } } },
+      // 啟示錄
+      "66-21": { titleZh: "新天新地：神擦去眼淚不再有死痛", titleEn: "THE NEW HEAVEN AND THE NEW EARTH", sections: { 1: { zh: "看哪新天新地新耶路撒冷", en: "A New Heaven and a New Earth" }, 9: { zh: "羔羊的新婦榮耀聖城", en: "The New Jerusalem" }, 22: { zh: "主神與羔羊為城裡的殿與光", en: "The Glory of the City" } } },
+      "66-22": { titleZh: "生命水與生命樹 · 主必快來", titleEn: "THE RIVER OF LIFE & I AM COMING SOON", sections: { 1: { zh: "水晶般明亮的生命水河", en: "The River of Life" }, 6: { zh: "主耶穌宣告：看哪我必快來", en: "Jesus Is Coming Soon" }, 20: { zh: "主耶穌阿我願祢來願主恩同在", en: "Amen. Come, Lord Jesus" } } }
+    };
+
+    /* 確保全聖經 1189 章都有清楚的小標題與章節主題輔助 */
+    function getChapterHeadline(bookId, chapter) {
+      const key = `${bookId}-${chapter}`;
+      if (CHAPTER_HEADINGS[key]) {
+        return CHAPTER_HEADINGS[key];
+      }
+      const book = BIBLE_BOOKS.find(b => b.id === bookId);
+      const bookSummary = BOOK_THEMES[bookId] || `${book.zh}靈修研讀`;
+      return {
+        titleZh: bookSummary,
+        titleEn: `${book.en.toUpperCase()} CHAPTER ${chapter}`,
+        sections: {
+          1: { zh: `${book.zh} 第 ${chapter} 章`, en: `${book.en} Chapter ${chapter}` }
+        }
+      };
+    }
+
+    const TOTAL_BIBLE_CHAPTERS = 1189;
+    const OT_CHAPTERS = 929;
+    const NT_CHAPTERS = 260;
+
+    /* ========================================================
+       2. 資料模型與狀態
+       ======================================================== */
+    const DEFAULT_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
+    const STORAGE_KEY = "devotional_bible_app_motto_v1";
     const CONFIG_KEY = "devotional_google_config";
 
     let appData = {
-      version: "1.0",
-      currentDay: 1,
-      completedDays: [],
-      highlights: {}, // key: "day-1-v1", value: "yellow"
-      notes: {},       // key: "day-1", value: "筆記文字"
-      bookmarks: []    // items: { id, ref, zhRef, text, tags: [], customNote, date }
+      version: "6.0",
+      currentBookIndex: 42, // 約翰福音
+      currentChapter: 14,
+      enTranslation: "KJV",
+      viewMode: "interlinear",
+      randomScope: "all",
+      drawerOpen: false,
+      history: [],
+      readRecords: {}, // "bookId-chapter": "YYYY-MM-DD"
+      highlights: {},  // "bookId-chapter-verse": "yellow"
+      verseNotes: {},  // "bookId-chapter-verse": "note text"
+      notes: {},       // "bookId-chapter": "chapter note text"
+      bookmarks: []
     };
 
     let activeColor = "yellow";
+    let currentFontSize = "text-lg";
     let tokenClient = null;
     let accessToken = null;
     let driveFileId = null;
-    let currentRawVerseData = null;
+    let currentVersesData = [];
+    let currentMatrixFilter = "all";
+    
+    // 多節選取集合
+    let selectedVerses = new Set();
+    let currentModalVerse = null;
 
     /* ========================================================
-       3. 初始化載入
+       3. 初始化載入 (未讀優先隨機抽籤)
        ======================================================== */
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       loadLocalData();
-      renderDayButtons();
+      initManualSelects();
+      renderHistoryList();
       renderBookmarksList('all');
-      loadDayScripture(appData.currentDay);
+      updateAllProgressUI();
+
+      // 每次開啟隨機跳出未讀經文
+      const startupSelection = pickRandomUnreadChapter();
+      selectBookAndChapter(startupSelection.bookIndex, startupSelection.chapter, false);
+
       initGoogleTokenClient();
     });
 
-    const DEFAULT_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
+    function toggleDrawer() {
+      const drawer = document.getElementById("drawerPanel");
+      appData.drawerOpen = !appData.drawerOpen;
+      if (appData.drawerOpen) {
+        drawer.classList.remove("-ml-80");
+      } else {
+        drawer.classList.add("-ml-80");
+      }
+    }
+
+    function pickRandomUnreadChapter() {
+      const eligible = getEligibleBooks();
+      let unreadList = [];
+
+      eligible.forEach(b => {
+        for (let ch = 1; ch <= b.chapters; ch++) {
+          const key = `${b.id}-${ch}`;
+          if (!appData.readRecords[key]) {
+            unreadList.push({ bookIndex: b.index, chapter: ch });
+          }
+        }
+      });
+
+      if (unreadList.length === 0) {
+        eligible.forEach(b => {
+          for (let ch = 1; ch <= b.chapters; ch++) {
+            unreadList.push({ bookIndex: b.index, chapter: ch });
+          }
+        });
+      }
+
+      return unreadList[Math.floor(Math.random() * unreadList.length)];
+    }
 
     function loadLocalData() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
           appData = Object.assign(appData, JSON.parse(saved));
+          if (!appData.readRecords) appData.readRecords = {};
+          if (!appData.verseNotes) appData.verseNotes = {};
         } catch (e) {
           console.error("載入本地資料失敗", e);
         }
@@ -435,232 +926,755 @@
       if (config) {
         try {
           const cfg = JSON.parse(config);
-          if (cfg.clientId) {
-            activeClientId = cfg.clientId;
-          }
+          if (cfg.clientId) activeClientId = cfg.clientId;
         } catch (e) {}
       } else {
         localStorage.setItem(CONFIG_KEY, JSON.stringify({ clientId: DEFAULT_CLIENT_ID }));
       }
       document.getElementById("clientIdInput").value = activeClientId;
+      document.getElementById("enTranslationSelect").value = appData.enTranslation || "KJV";
+      setViewMode(appData.viewMode || "interlinear", false);
+      setRandomScope(appData.randomScope || "all", false);
     }
 
     function saveLocalData() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      updateAllProgressUI();
       scheduleAutoCloudSync();
     }
 
     /* ========================================================
-       4. 讀經計畫介面渲染
+       4. 讀經進度計算與標記已讀
        ======================================================== */
-    function renderDayButtons() {
-      const container = document.getElementById("dayButtonsContainer");
-      container.innerHTML = "";
+    function getTodayDateString() {
+      const d = new Date();
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    }
 
-      DEVOTIONAL_PLAN.forEach(item => {
-        const btn = document.createElement("button");
-        const isCurrent = item.day === appData.currentDay;
-        const isDone = appData.completedDays.includes(item.day);
+    function toggleCurrentChapterRead() {
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const key = `${book.id}-${appData.currentChapter}`;
+      
+      if (appData.readRecords[key]) {
+        delete appData.readRecords[key];
+      } else {
+        appData.readRecords[key] = getTodayDateString();
+      }
 
-        let cls = "text-xs h-8 rounded-lg font-medium transition flex items-center justify-center ";
-        if (isCurrent) {
-          cls += "bg-amber-800 text-white shadow-sm ring-2 ring-amber-700/50 ";
-        } else if (isDone) {
-          cls += "bg-emerald-100 text-emerald-800 border border-emerald-300 ";
-        } else {
-          cls += "bg-stone-100 text-stone-700 hover:bg-stone-200 ";
+      saveLocalData();
+      updateChapterReadBtnState();
+      updateAllProgressUI();
+      if (!document.getElementById("progressModal").classList.contains("hidden")) {
+        renderBibleMatrix();
+      }
+    }
+
+    function updateChapterReadBtnState() {
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const key = `${book.id}-${appData.currentChapter}`;
+      const recordDate = appData.readRecords[key];
+
+      const text = document.getElementById("markChapterReadText");
+
+      if (recordDate) {
+        text.innerText = `(READ · ${recordDate})`;
+        text.className = "text-black underline font-bold";
+      } else {
+        text.innerText = "(MARK AS READ)";
+        text.className = "text-zinc-600 hover:text-black";
+      }
+    }
+
+    function calculateProgressStats() {
+      let totalRead = 0;
+      let otRead = 0;
+      let ntRead = 0;
+      const bookStats = {};
+
+      BIBLE_BOOKS.forEach(b => {
+        let count = 0;
+        for (let ch = 1; ch <= b.chapters; ch++) {
+          const key = `${b.id}-${ch}`;
+          if (appData.readRecords[key]) {
+            count++;
+            totalRead++;
+            if (b.test === "ot") otRead++;
+            else ntRead++;
+          }
         }
-
-        btn.className = cls;
-        btn.innerText = item.day;
-        btn.onclick = () => selectDay(item.day);
-        container.appendChild(btn);
+        bookStats[b.id] = {
+          read: count,
+          total: b.chapters,
+          pct: Math.round((count / b.chapters) * 100)
+        };
       });
 
-      document.getElementById("currentProgressText").innerText = `第 ${appData.currentDay} / 30 天`;
-      updateCompletionButtonState();
+      return {
+        totalRead,
+        totalPct: ((totalRead / TOTAL_BIBLE_CHAPTERS) * 100).toFixed(1),
+        otRead,
+        otPct: ((otRead / OT_CHAPTERS) * 100).toFixed(1),
+        ntRead,
+        ntPct: ((ntRead / NT_CHAPTERS) * 100).toFixed(1),
+        bookStats
+      };
     }
 
-    function selectDay(day) {
-      appData.currentDay = day;
-      saveLocalData();
-      renderDayButtons();
-      loadDayScripture(day);
+    function updateAllProgressUI() {
+      const stats = calculateProgressStats();
+
+      document.getElementById("navProgressBadge").innerText = `[MATRIX ${stats.totalPct}%]`;
+      
+      // Drawer
+      document.getElementById("drawerTotalPct").innerText = `${stats.totalPct}%`;
+      document.getElementById("drawerTotalBar").style.width = `${stats.totalPct}%`;
+      document.getElementById("drawerOtText").innerText = `${stats.otPct}%`;
+      document.getElementById("drawerNtText").innerText = `${stats.ntPct}%`;
+
+      // Modal
+      document.getElementById("modalTotalStats").innerText = `${stats.totalPct}% (${stats.totalRead}/${TOTAL_BIBLE_CHAPTERS})`;
+      document.getElementById("modalTotalBar").style.width = `${stats.totalPct}%`;
+      document.getElementById("modalOtStats").innerText = `${stats.otPct}%`;
+      document.getElementById("modalOtBar").style.width = `${stats.otPct}%`;
+      document.getElementById("modalNtStats").innerText = `${stats.ntPct}%`;
+      document.getElementById("modalNtBar").style.width = `${stats.ntPct}%`;
     }
 
-    function toggleTodayCompletion() {
-      const day = appData.currentDay;
-      const idx = appData.completedDays.indexOf(day);
-      if (idx > -1) {
-        appData.completedDays.splice(idx, 1);
-      } else {
-        appData.completedDays.push(day);
-      }
-      saveLocalData();
-      renderDayButtons();
+    function openProgressModal() {
+      renderBibleMatrix();
+      document.getElementById("progressModal").classList.remove("hidden");
     }
 
-    function updateCompletionButtonState() {
-      const isDone = appData.completedDays.includes(appData.currentDay);
-      const btn = document.getElementById("markCompleteBtn");
-      const label = document.getElementById("markCompleteBtnText");
+    function closeProgressModal() {
+      document.getElementById("progressModal").classList.add("hidden");
+    }
 
-      if (isDone) {
-        btn.className = "w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition";
-        label.innerText = "已完成今日靈修 (點擊取消)";
-      } else {
-        btn.className = "w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition";
-        label.innerText = "標記今日已完成";
-      }
-      lucide.createIcons();
+    function filterMatrixView(filterKey) {
+      currentMatrixFilter = filterKey;
+      document.querySelectorAll(".matrix-filter-btn").forEach(btn => {
+        if (btn.dataset.filter === filterKey) {
+          btn.className = "font-bold underline text-black matrix-filter-btn";
+        } else {
+          btn.className = "text-zinc-400 hover:text-black matrix-filter-btn";
+        }
+      });
+      renderBibleMatrix();
+    }
+
+    function renderBibleMatrix() {
+      const container = document.getElementById("bibleMatrixContainer");
+      container.innerHTML = "";
+      const stats = calculateProgressStats();
+
+      let filteredBooks = BIBLE_BOOKS;
+      if (currentMatrixFilter === "ot") filteredBooks = BIBLE_BOOKS.filter(b => b.test === "ot");
+      else if (currentMatrixFilter === "nt") filteredBooks = BIBLE_BOOKS.filter(b => b.test === "nt");
+      else if (currentMatrixFilter === "gospels") filteredBooks = BIBLE_BOOKS.filter(b => b.cat === "gospels");
+      else if (currentMatrixFilter === "pauline") filteredBooks = BIBLE_BOOKS.filter(b => b.cat === "pauline");
+      else if (currentMatrixFilter === "wisdom") filteredBooks = BIBLE_BOOKS.filter(b => b.cat === "wisdom");
+
+      filteredBooks.forEach((book) => {
+        const bookStat = stats.bookStats[book.id];
+        const bookIdx = BIBLE_BOOKS.findIndex(b => b.id === book.id);
+
+        const card = document.createElement("div");
+        card.className = "space-y-2 border-b border-zinc-100 pb-4";
+
+        const header = document.createElement("div");
+        header.className = "flex items-baseline justify-between text-xs font-mono-swiss";
+        header.innerHTML = `
+          <div class="flex items-baseline space-x-2">
+            <span class="font-bold text-black uppercase">${book.zh} / ${book.enShort}</span>
+            <span class="text-zinc-400 text-[10px]">(${bookStat.read}/${bookStat.total} CHAPTERS)</span>
+          </div>
+          <span class="font-bold ${bookStat.pct === 100 ? 'text-green-600' : 'text-black'}">${bookStat.pct}%</span>
+        `;
+        card.appendChild(header);
+
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-12 sm:grid-cols-20 md:grid-cols-25 gap-1";
+
+        for (let ch = 1; ch <= book.chapters; ch++) {
+          const key = `${book.id}-${ch}`;
+          const readDate = appData.readRecords[key];
+          const isCurrentReading = (appData.currentBookIndex === bookIdx && appData.currentChapter === ch);
+
+          const block = document.createElement("button");
+          block.className = "h-5 text-[9px] font-mono-swiss flex items-center justify-center transition ";
+
+          if (readDate) {
+            block.className += "bg-black text-white ";
+            block.title = `${book.zh} 第 ${ch} 章 (已讀：${readDate})`;
+          } else {
+            block.className += "bg-zinc-100 text-zinc-400 hover:bg-zinc-200 ";
+            block.title = `${book.zh} 第 ${ch} 章 (未讀)`;
+          }
+
+          if (isCurrentReading) {
+            block.className += "ring-2 ring-black font-bold ";
+          }
+
+          block.innerText = ch;
+          block.onclick = () => {
+            selectBookAndChapter(bookIdx, ch);
+            closeProgressModal();
+          };
+          grid.appendChild(block);
+        }
+
+        card.appendChild(grid);
+        container.appendChild(card);
+      });
     }
 
     /* ========================================================
-       5. 經文 API 載入與互動 (高亮)
+       5. 抽籤、選章與排版
        ======================================================== */
-    async function loadDayScripture(day) {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === day);
-      if (!planItem) return;
+    function setViewMode(mode, shouldRerender = true) {
+      appData.viewMode = mode;
+      document.querySelectorAll(".view-mode-btn").forEach(btn => {
+        if (btn.dataset.mode === mode) {
+          btn.className = "view-mode-btn font-bold text-black underline";
+        } else {
+          btn.className = "view-mode-btn text-zinc-500 hover:text-black";
+        }
+      });
+      if (shouldRerender) {
+        saveLocalData();
+        renderScriptureVerses();
+      }
+    }
 
-      document.getElementById("readingDayBadge").innerText = `第 ${day} 天經文`;
-      document.getElementById("scriptureRef").innerText = planItem.zhRef;
-      document.getElementById("scriptureTheme").innerText = `主題：${planItem.theme}`;
-      
-      // Load note for today
+    function onEnTranslationChange() {
+      appData.enTranslation = document.getElementById("enTranslationSelect").value;
+      saveLocalData();
+      loadBilingualChapter(appData.currentBookIndex, appData.currentChapter);
+    }
+
+    function setRandomScope(scope, shouldSave = true) {
+      appData.randomScope = scope;
+      document.querySelectorAll(".scope-btn").forEach(btn => {
+        if (btn.dataset.scope === scope) {
+          btn.className = "scope-btn font-bold underline text-black uppercase";
+        } else {
+          btn.className = "scope-btn text-zinc-500 hover:text-black uppercase";
+        }
+      });
+      if (shouldSave) saveLocalData();
+    }
+
+    function getEligibleBooks() {
+      if (appData.randomScope === "nt") {
+        return BIBLE_BOOKS.map((b, i) => ({ ...b, index: i })).filter(b => b.test === "nt");
+      } else if (appData.randomScope === "wisdom") {
+        return BIBLE_BOOKS.map((b, i) => ({ ...b, index: i })).filter(b => ["詩篇", "箴言", "約伯記", "傳道書"].includes(b.zh));
+      } else {
+        return BIBLE_BOOKS.map((b, i) => ({ ...b, index: i }));
+      }
+    }
+
+    function drawRandomChapter() {
+      const pick = pickRandomUnreadChapter();
+      document.getElementById("heroTitle").innerText = "ROLLING...";
+      setTimeout(() => {
+        selectBookAndChapter(pick.bookIndex, pick.chapter);
+        if (appData.drawerOpen) toggleDrawer();
+      }, 150);
+    }
+
+    function selectBookAndChapter(bookIndex, chapter, recordHistory = true) {
+      appData.currentBookIndex = bookIndex;
+      appData.currentChapter = chapter;
+      clearVerseSelection();
+
+      if (recordHistory) {
+        const existingIdx = appData.history.findIndex(h => h.bookIndex === bookIndex && h.chapter === chapter);
+        if (existingIdx > -1) appData.history.splice(existingIdx, 1);
+        appData.history.unshift({
+          bookIndex,
+          chapter,
+          zhRef: `${BIBLE_BOOKS[bookIndex].zh} ${chapter}`,
+          time: new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })
+        });
+        if (appData.history.length > 15) appData.history.pop();
+        saveLocalData();
+      }
+
+      syncSelectPickers();
+      renderHistoryList();
+      updateChapterReadBtnState();
+      loadBilingualChapter(bookIndex, chapter);
+    }
+
+    function initManualSelects() {
+      const bookSel = document.getElementById("manualBookSelect");
+      bookSel.innerHTML = "";
+      BIBLE_BOOKS.forEach((b, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.innerText = b.zh;
+        bookSel.appendChild(opt);
+      });
+      syncSelectPickers();
+    }
+
+    function syncSelectPickers() {
+      const bookSel = document.getElementById("manualBookSelect");
+      const chapSel = document.getElementById("manualChapterSelect");
+      bookSel.value = appData.currentBookIndex;
+
+      chapSel.innerHTML = "";
+      const totalChaps = BIBLE_BOOKS[appData.currentBookIndex].chapters;
+      for (let i = 1; i <= totalChaps; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.innerText = `${i} 章`;
+        chapSel.appendChild(opt);
+      }
+      chapSel.value = appData.currentChapter;
+    }
+
+    function onManualBookChange() {
+      const bookIdx = parseInt(document.getElementById("manualBookSelect").value);
+      selectBookAndChapter(bookIdx, 1);
+    }
+
+    function onManualChapterChange() {
+      const chap = parseInt(document.getElementById("manualChapterSelect").value);
+      selectBookAndChapter(appData.currentBookIndex, chap);
+    }
+
+    function navigateChapter(delta) {
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      let newChap = appData.currentChapter + delta;
+      if (newChap >= 1 && newChap <= book.chapters) {
+        selectBookAndChapter(appData.currentBookIndex, newChap);
+      } else if (newChap > book.chapters && appData.currentBookIndex < BIBLE_BOOKS.length - 1) {
+        selectBookAndChapter(appData.currentBookIndex + 1, 1);
+      } else if (newChap < 1 && appData.currentBookIndex > 0) {
+        const prevBook = BIBLE_BOOKS[appData.currentBookIndex - 1];
+        selectBookAndChapter(appData.currentBookIndex - 1, prevBook.chapters);
+      }
+    }
+
+    function renderHistoryList() {
+      const container = document.getElementById("readingHistoryList");
+      if (!appData.history || appData.history.length === 0) {
+        container.innerHTML = `<span class="text-[10px] font-mono-swiss text-zinc-400">NO HISTORY</span>`;
+        return;
+      }
+      container.innerHTML = "";
+      appData.history.forEach(item => {
+        const btn = document.createElement("button");
+        const isCurrent = item.bookIndex === appData.currentBookIndex && item.chapter === appData.currentChapter;
+        btn.className = `text-[10px] font-mono-swiss px-2 py-0.5 transition ${
+          isCurrent ? "bg-black text-white" : "bg-white text-zinc-600 hover:bg-zinc-200"
+        }`;
+        btn.innerText = `${item.zhRef}`;
+        btn.onclick = () => selectBookAndChapter(item.bookIndex, item.chapter);
+        container.appendChild(btn);
+      });
+    }
+
+    function clearHistory() {
+      appData.history = [];
+      saveLocalData();
+      renderHistoryList();
+    }
+
+    /* ========================================================
+       6. 經文抓取與清洗 (去除 Strong's 編號)
+       ======================================================== */
+    function cleanBibleText(rawText) {
+      if (!rawText) return "";
+      return rawText
+        .replace(/<S>[^<]*<\/S>/gi, "")         // 移除 Strong 標籤
+        .replace(/<[^>]*>?/gm, "")               // 移除 HTML 標籤
+        .replace(/([a-zA-Z]+)(\d{1,5})/g, "$1") // 移除單字後緊貼的數字
+        .replace(/ [HG]?\d{3,5} /g, "")       // 移除獨立編號
+        .replace(/[ 	]{2,}/g, " ")             // 壓平多餘空格
+        .trim();
+    }
+
+    async function fetchVersesWithTimeout(url, timeoutMs = 7000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+      } catch (e) {
+        clearTimeout(timer);
+        throw e;
+      }
+    }
+
+    async function loadBilingualChapter(bookIndex, chapter) {
+      const book = BIBLE_BOOKS[bookIndex];
+      const zhRef = `${book.zh} 第 ${chapter} 章`;
+      const enRef = `${book.en.toUpperCase()} ${chapter}`;
+
+      // Update Center Header & Hero Section
+      const chHeading = getChapterHeadline(book.id, chapter);
+
+      // 去除「本章小標題：」與重複的書卷章節前綴
+      let cleanTitle = chHeading.titleZh
+        .replace(/^本章小標題[：:]\s*/, '')
+        .replace(new RegExp(`^${book.zh}\\s*第\\s*\\d+\\s*章\\s*[·•\\-–—:]\\s*`), '')
+        .trim();
+
+      document.getElementById("headerTitleZh").innerText = cleanTitle ? `${zhRef} · ${cleanTitle.split('·')[0].split('：')[0].trim()}` : zhRef;
+      document.getElementById("headerTitleEn").innerText = `${enRef} · (${book.test.toUpperCase()})`;
+
+      document.getElementById("heroSubtitle").innerText = `(CHAPTER ${chapter} OF ${book.chapters} · ${book.test === 'nt' ? 'NEW TESTAMENT' : 'OLD TESTAMENT'}) · ${chHeading.titleEn}`;
+      document.getElementById("heroTitle").innerHTML = `*${enRef}<br><span class="font-serif-tc text-3xl sm:text-5xl font-bold tracking-tight">${zhRef}</span>${cleanTitle ? `<div class="font-serif-tc font-semibold text-base sm:text-xl text-zinc-800 mt-3 pt-2 tracking-normal border-t border-zinc-200 max-w-2xl">${cleanTitle}</div>` : ''}`;
+
+      updateChapterReadBtnState();
+
       const noteInput = document.getElementById("dayNoteInput");
-      noteInput.value = appData.notes[`day-${day}`] || "";
+      noteInput.value = appData.notes[`${bookIndex}-${chapter}`] || "";
 
       const textContainer = document.getElementById("scriptureTextContainer");
       textContainer.innerHTML = `
-        <div class="flex items-center justify-center text-stone-400 py-10 space-x-2">
-          <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
-          <span>正在獲取經文...</span>
+        <div class="py-24 font-mono-swiss text-xs text-zinc-400 uppercase tracking-widest text-center">
+          [LOADING CHAPTER TEXT...]
         </div>
       `;
-      lucide.createIcons();
 
-      try {
-        // Query bible-api.com with Chinese CUV translation
-        const encodedRef = encodeURIComponent(planItem.ref);
-        const resp = await fetch(`https://bible-api.com/${encodedRef}?translation=cuv`);
-        
-        if (!resp.ok) throw new Error("API 回應異常");
-        const data = await resp.json();
-        currentRawVerseData = data;
-        renderScriptureVerses(data, day);
-      } catch (err) {
-        console.warn("API 載入失敗，採用內建經典釋義備援方案", err);
-        renderFallbackVerses(planItem, day);
-      }
-    }
+      const enCode = appData.enTranslation === "NLV" ? "NLV" : "KJV";
+      const bookId = book.id;
 
-    function reloadCurrentScripture() {
-      loadDayScripture(appData.currentDay);
-    }
+      let zhVerses = [];
+      let enVerses = [];
 
-    function renderScriptureVerses(apiData, day) {
-      const container = document.getElementById("scriptureTextContainer");
-      container.innerHTML = "";
+      // Fetch EN
+      const fetchEnPromise = (async () => {
+        try {
+          const data = await fetchVersesWithTimeout(`https://bolls.life/get-chapter/${enCode}/${bookId}/${chapter}/`);
+          if (Array.isArray(data)) {
+            return data.map(item => ({ verse: item.verse, text: cleanBibleText(item.text) }));
+          }
+        } catch (e) {}
+        if (enCode === "KJV") {
+          try {
+            const data2 = await fetchVersesWithTimeout(`https://bible-api.com/${encodeURIComponent(book.en)}+${chapter}?translation=kjv`);
+            if (data2.verses) return data2.verses.map(v => ({ verse: v.verse, text: cleanBibleText(v.text) }));
+          } catch (e2) {}
+        }
+        return [];
+      })();
 
-      if (!apiData.verses || apiData.verses.length === 0) {
-        container.innerHTML = `<p class="text-stone-700">${apiData.text || "查無此經文內容"}</p>`;
+      // Fetch ZH
+      const fetchZhPromise = (async () => {
+        try {
+          const data = await fetchVersesWithTimeout(`https://bolls.life/get-chapter/CUV/${bookId}/${chapter}/`);
+          if (Array.isArray(data) && data.length > 0) {
+            return data.map(item => ({ verse: item.verse, text: cleanBibleText(item.text) }));
+          }
+        } catch (e) {}
+        try {
+          const data2 = await fetchVersesWithTimeout(`https://bible-api.com/${encodeURIComponent(book.en)}+${chapter}?translation=cuv`);
+          if (data2.verses && data2.verses.length > 0) {
+            return data2.verses.map(v => ({ verse: v.verse, text: cleanBibleText(v.text) }));
+          }
+        } catch (e2) {}
+        return [];
+      })();
+
+      const [fetchedEn, fetchedZh] = await Promise.all([fetchEnPromise, fetchZhPromise]);
+      enVerses = fetchedEn;
+      zhVerses = fetchedZh;
+
+      const maxVerseCount = Math.max(zhVerses.length, enVerses.length);
+      if (maxVerseCount === 0) {
+        textContainer.innerHTML = `
+          <div class="py-12 text-xs font-mono-swiss text-zinc-500 uppercase">
+            [API TEMPORARILY OFFLINE. PLEASE RETRY OR SWITCH CHAPTERS.]
+          </div>
+        `;
         return;
       }
 
-      apiData.verses.forEach(v => {
-        const verseKey = `day-${day}-v${v.verse}`;
-        const activeHighlight = appData.highlights[verseKey];
+      currentVersesData = [];
+      const zhMap = new Map(zhVerses.map(v => [v.verse, v.text]));
+      const enMap = new Map(enVerses.map(v => [v.verse, v.text]));
 
-        const p = document.createElement("p");
-        p.className = "cursor-pointer select-text hover:bg-stone-100/70 p-1.5 rounded transition flex items-start gap-2";
-        
-        let highlightClass = "";
-        if (activeHighlight && activeHighlight !== "none") {
-          highlightClass = `verse-highlight-${activeHighlight}`;
-        }
-
-        p.innerHTML = `
-          <span class="text-xs text-stone-400 font-sans font-bold select-none pt-1">${v.verse}</span>
-          <span class="flex-1 ${highlightClass}" id="verseSpan-${verseKey}">${v.text.trim()}</span>
-        `;
-
-        p.onclick = () => toggleVerseHighlight(verseKey);
-        container.appendChild(p);
-      });
-      lucide.createIcons();
-    }
-
-    function renderFallbackVerses(planItem, day) {
-      const container = document.getElementById("scriptureTextContainer");
-      const verseKey = `day-${day}-v1`;
-      const activeHighlight = appData.highlights[verseKey];
-      let highlightClass = "";
-      if (activeHighlight && activeHighlight !== "none") {
-        highlightClass = `verse-highlight-${activeHighlight}`;
+      for (let v = 1; v <= maxVerseCount; v++) {
+        currentVersesData.push({
+          verse: v,
+          zhText: zhMap.get(v) || "",
+          enText: enMap.get(v) || ""
+        });
       }
 
-      container.innerHTML = `
-        <p class="cursor-pointer select-text hover:bg-stone-100/70 p-1.5 rounded transition flex items-start gap-2" onclick="toggleVerseHighlight('${verseKey}')">
-          <span class="text-xs text-stone-400 font-sans font-bold select-none pt-1">1</span>
-          <span class="flex-1 ${highlightClass}" id="verseSpan-${verseKey}">${planItem.theme}。（此經文目前於離線或快速快取檢視中）</span>
-        </p>
-      `;
-      currentRawVerseData = { text: planItem.theme, reference: planItem.zhRef };
-      lucide.createIcons();
-    }
-
-    /* 高亮機制 */
-    function setActiveHighlightColor(color) {
-      activeColor = color;
-      document.querySelectorAll(".active-color-btn").forEach(btn => {
-        if (btn.dataset.color === color) {
-          btn.classList.add("ring-2", "ring-stone-600");
-        } else {
-          btn.classList.remove("ring-2", "ring-stone-600");
-        }
-      });
-    }
-
-    function toggleVerseHighlight(verseKey) {
-      const span = document.getElementById(`verseSpan-${verseKey}`);
-      if (!span) return;
-
-      if (activeColor === "none" || appData.highlights[verseKey] === activeColor) {
-        delete appData.highlights[verseKey];
-        span.className = span.className.replace(/verse-highlight-\w+/g, "").trim();
-      } else {
-        appData.highlights[verseKey] = activeColor;
-        span.className = span.className.replace(/verse-highlight-\w+/g, "").trim();
-        span.classList.add(`verse-highlight-${activeColor}`);
-      }
-      saveLocalData();
-    }
-
-    /* 筆記機制 */
-    let noteDebounceTimer = null;
-    function handleNoteInput() {
-      const text = document.getElementById("dayNoteInput").value;
-      appData.notes[`day-${appData.currentDay}`] = text;
-      
-      const status = document.getElementById("noteSavedStatus");
-      status.innerText = "儲存中...";
-      
-      clearTimeout(noteDebounceTimer);
-      noteDebounceTimer = setTimeout(() => {
-        saveLocalData();
-        status.innerText = "已儲存至本地";
-        setTimeout(() => {
-          status.innerText = "自動即時儲存";
-        }, 2000);
-      }, 800);
+      renderScriptureVerses();
     }
 
     /* ========================================================
-       6. 情境錦囊書籤模組 (Bookmark with Situation Tags)
+       7. 經文渲染、多節選取與單節註解 (Motto Minimal Editorial Style)
        ======================================================== */
-    function openBookmarkModal() {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
-      document.getElementById("bookmarkPreviewRef").innerText = `${planItem.zhRef} · ${planItem.theme}`;
+    function renderScriptureVerses() {
+      const container = document.getElementById("scriptureTextContainer");
+      container.innerHTML = "";
+      if (!currentVersesData || currentVersesData.length === 0) return;
+
+      const mode = appData.viewMode;
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const bookId = book.id;
+      const chapter = appData.currentChapter;
+
+      if (mode === "parallel") {
+        // Parallel Row-by-Row Aligned View (每個章節獨立 Row，左中右英絕對水平對齊)
+        const wrapper = document.createElement("div");
+        wrapper.className = "w-full space-y-1";
+
+        // Top Column Labels
+        const headerRow = document.createElement("div");
+        headerRow.className = "grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 pb-4 select-none text-[11px] font-mono-swiss text-zinc-400 uppercase tracking-widest";
+        headerRow.innerHTML = `
+          <div>(TRADITIONAL CHINESE · 新標點和合本)</div>
+          <div class="hidden md:block">(${appData.enTranslation} · ENGLISH)</div>
+        `;
+        wrapper.appendChild(headerRow);
+
+        const chKey = `${bookId}-${chapter}`;
+        const chHeading = getChapterHeadline(bookId, chapter);
+
+        currentVersesData.forEach(item => {
+          const verseKey = `${bookId}-${chapter}-${item.verse}`;
+
+          // 若此節有分段小標題，則插入跨欄小標題
+          if (chHeading && chHeading.sections && chHeading.sections[item.verse]) {
+            const sec = chHeading.sections[item.verse];
+            const secBanner = document.createElement("div");
+            secBanner.className = "col-span-full pt-10 pb-3";
+            secBanner.innerHTML = `
+              <div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest">(SECTION HEADING)</div>
+              <div class="flex flex-wrap items-baseline gap-3 mt-1">
+                <h3 class="font-serif-tc font-bold text-xl text-black">§ ${sec.zh}</h3>
+                <span class="font-headline font-medium text-sm text-zinc-500">/ ${sec.en}</span>
+              </div>
+            `;
+            wrapper.appendChild(secBanner);
+          }
+          const isSelected = selectedVerses.has(item.verse);
+          const activeHighlight = appData.highlights[verseKey];
+          let highlightClass = (activeHighlight && activeHighlight !== "none") ? `verse-highlight-${activeHighlight}` : "";
+          const verseNote = appData.verseNotes[verseKey];
+
+          // 每一節是一個完整的橫列 Row
+          const row = document.createElement("div");
+          row.className = `grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 py-4 items-start cursor-pointer transition ${
+            isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'
+          }`;
+          row.onclick = () => toggleVerseSelection(item.verse);
+
+          // 左欄：中文該節
+          const colZh = document.createElement("div");
+          colZh.className = `font-serif-tc ${currentFontSize} leading-relaxed flex items-start space-x-3.5`;
+          colZh.innerHTML = `
+            <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none shrink-0">[${String(item.verse).padStart(2, '0')}]</span>
+            <div class="flex-1 space-y-1">
+              <span class="${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || "—"}</span>
+              ${verseNote ? `<div class="mt-1 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-1.5">${verseNote}</div>` : ''}
+            </div>
+            ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase shrink-0" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
+          `;
+
+          // 右欄：英文該節
+          const colEn = document.createElement("div");
+          colEn.className = `font-en-text ${currentFontSize} flex items-start space-x-3.5 pt-2 md:pt-0`;
+          colEn.innerHTML = `
+            <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none shrink-0 md:hidden">[${String(item.verse).padStart(2, '0')}]</span>
+            <span class="flex-1 font-normal text-zinc-900 ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || "—"}</span>
+          `;
+
+          row.appendChild(colZh);
+          row.appendChild(colEn);
+          wrapper.appendChild(row);
+        });
+
+        container.appendChild(wrapper);
+
+      } else {
+        // Interlinear / Single Language
+        const listWrapper = document.createElement("div");
+        listWrapper.className = `space-y-7 ${currentFontSize} leading-relaxed`;
+
+        const chKey = `${bookId}-${chapter}`;
+        const chHeading = getChapterHeadline(bookId, chapter);
+
+        currentVersesData.forEach(item => {
+          const verseKey = `${bookId}-${chapter}-${item.verse}`;
+
+          // 若此節有分段小標題，則插入跨欄小標題
+          if (chHeading && chHeading.sections && chHeading.sections[item.verse]) {
+            const sec = chHeading.sections[item.verse];
+            const secBanner = document.createElement("div");
+            secBanner.className = "col-span-full pt-10 pb-3";
+            secBanner.innerHTML = `
+              <div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest">(SECTION HEADING)</div>
+              <div class="flex flex-wrap items-baseline gap-3 mt-1">
+                <h3 class="font-serif-tc font-bold text-xl text-black">§ ${sec.zh}</h3>
+                <span class="font-headline font-medium text-sm text-zinc-500">/ ${sec.en}</span>
+              </div>
+            `;
+            wrapper.appendChild(secBanner);
+          }
+          const isSelected = selectedVerses.has(item.verse);
+          const activeHighlight = appData.highlights[verseKey];
+          let highlightClass = (activeHighlight && activeHighlight !== "none") ? `verse-highlight-${activeHighlight}` : "";
+          const verseNote = appData.verseNotes[verseKey];
+
+          const card = document.createElement("div");
+          card.className = `p-3 transition cursor-pointer flex flex-col gap-1 ${isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'}`;
+          card.onclick = () => toggleVerseSelection(item.verse);
+
+          let innerContent = "";
+
+          if (mode === "interlinear") {
+            innerContent = `
+              <div class="flex items-start space-x-4">
+                <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
+                <div class="flex-1 space-y-1.5">
+                  <div class="font-serif-tc text-black font-normal ${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || ""}</div>
+                  <div class="font-en-text text-zinc-700 font-normal ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
+                </div>
+                ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
+              </div>
+              ${verseNote ? `<div class="ml-12 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-2">${verseNote}</div>` : ''}
+            `;
+          } else if (mode === "zhOnly") {
+            innerContent = `
+              <div class="flex items-start space-x-4">
+                <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
+                <div class="flex-1 font-serif-tc text-black ${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || ""}</div>
+                ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
+              </div>
+              ${verseNote ? `<div class="ml-12 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-2">${verseNote}</div>` : ''}
+            `;
+          } else if (mode === "enOnly") {
+            innerContent = `
+              <div class="flex items-start space-x-4">
+                <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
+                <div class="flex-1 font-en-text text-zinc-900 font-normal ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
+                ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
+              </div>
+              ${verseNote ? `<div class="ml-12 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-2">${verseNote}</div>` : ''}
+            `;
+          }
+
+          card.innerHTML = innerContent;
+          listWrapper.appendChild(card);
+        });
+
+        container.appendChild(listWrapper);
+      }
+    }
+
+    /* 多節選取機制 */
+    function toggleVerseSelection(verseNum) {
+      if (selectedVerses.has(verseNum)) {
+        selectedVerses.delete(verseNum);
+      } else {
+        selectedVerses.add(verseNum);
+      }
+      updateMultiVerseActionUI();
+      renderScriptureVerses();
+    }
+
+    function clearVerseSelection() {
+      selectedVerses.clear();
+      updateMultiVerseActionUI();
+      renderScriptureVerses();
+    }
+
+    function updateMultiVerseActionUI() {
+      const bar = document.getElementById("multiVerseActionBar");
+      const badge = document.getElementById("selectedVerseBadge");
+
+      if (selectedVerses.size > 0) {
+        bar.classList.remove("opacity-0", "pointer-events-none", "translate-y-4");
+        const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
+        const refStr = sorted.length === 1 ? `VERSE ${sorted[0]}` : `VERSES ${sorted[0]}-${sorted[sorted.length-1]} (${sorted.length})`;
+        badge.innerText = refStr;
+      } else {
+        bar.classList.add("opacity-0", "pointer-events-none", "translate-y-4");
+      }
+    }
+
+    function applyHighlightToSelected(color) {
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+
+      selectedVerses.forEach(v => {
+        const key = `${book.id}-${chapter}-${v}`;
+        if (color === "none") {
+          delete appData.highlights[key];
+        } else {
+          appData.highlights[key] = color;
+        }
+      });
+
+      saveLocalData();
+      clearVerseSelection();
+    }
+
+    function copySelectedVerses(lang = 'both') {
+      if (selectedVerses.size === 0) return;
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+      const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
+
+      let title = "";
+      if (lang === 'zh') {
+        title = `【${book.zh} 第${chapter}章 ${sorted.join(',')}節】\n\n`;
+      } else if (lang === 'en') {
+        title = `*${book.en.toUpperCase()} ${chapter}:${sorted.join(',')} (${appData.enTranslation})\n\n`;
+      } else {
+        title = `*${book.en.toUpperCase()} ${chapter}:${sorted.join(',')} (${book.zh} ${chapter}章 · ${appData.enTranslation})\n\n`;
+      }
+
+      let content = title;
+      sorted.forEach(v => {
+        const item = currentVersesData.find(i => i.verse === v);
+        if (item) {
+          if (lang === 'zh') {
+            content += `[${v}] ${item.zhText}\n`;
+          } else if (lang === 'en') {
+            content += `[${v}] ${item.enText}\n`;
+          } else {
+            content += `[${v}] ${item.zhText}\n${item.enText}\n\n`;
+          }
+        }
+      });
+
+      const copyLabel = lang === 'zh' ? '中文經文' : (lang === 'en' ? '英文經文' : '中英雙語經文');
+      navigator.clipboard.writeText(content.trim()).then(() => {
+        alert(`已成功複製選取的${copyLabel}！`);
+        clearVerseSelection();
+      }).catch(err => console.error(err));
+    }
+
+    function openBookmarkModalForSelected() {
+      if (selectedVerses.size === 0) return;
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+      const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
+
+      let preview = `<div class="font-headline font-black text-sm uppercase text-black mb-2">${book.zh} 第 ${chapter} 章 · 節 ${sorted.join(', ')}</div>`;
+      sorted.forEach(v => {
+        const item = currentVersesData.find(i => i.verse === v);
+        if (item) {
+          preview += `<div class="mb-2"><strong>[${v}]</strong> ${item.zhText}<br><span class="text-zinc-500 font-headline">${item.enText}</span></div>`;
+        }
+      });
+
+      document.getElementById("bookmarkPreviewRef").innerHTML = preview;
       document.querySelectorAll(".situation-cb").forEach(cb => cb.checked = false);
       document.getElementById("customTagNote").value = "";
       document.getElementById("bookmarkModal").classList.remove("hidden");
@@ -671,26 +1685,35 @@
     }
 
     function saveBookmark() {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+      const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
       const checkedTags = Array.from(document.querySelectorAll(".situation-cb:checked")).map(cb => cb.value);
       const customNote = document.getElementById("customTagNote").value.trim();
 
+      let textSummary = "";
+      sorted.forEach(v => {
+        const item = currentVersesData.find(i => i.verse === v);
+        if (item) textSummary += `${item.zhText} `;
+      });
+
       const newBookmark = {
         id: "bm_" + Date.now(),
-        day: appData.currentDay,
-        ref: planItem.ref,
-        zhRef: planItem.zhRef,
-        theme: planItem.theme,
-        text: currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme,
+        bookIndex: appData.currentBookIndex,
+        chapter: chapter,
+        verses: sorted,
+        zhRef: `${book.zh} ${chapter}:${sorted.join(',')}`,
+        text: textSummary.trim() || `${book.zh} ${chapter}章`,
         tags: checkedTags.length > 0 ? checkedTags : ["未分類"],
         customNote: customNote,
-        createdAt: new Date().toISOString().split("T")[0]
+        createdAt: getTodayDateString()
       };
 
       appData.bookmarks.unshift(newBookmark);
       saveLocalData();
       renderBookmarksList('all');
       closeBookmarkModal();
+      clearVerseSelection();
     }
 
     function deleteBookmark(id) {
@@ -702,9 +1725,9 @@
     function filterBookmarks(tag) {
       document.querySelectorAll(".pill-filter").forEach(btn => {
         if (btn.dataset.tag === tag) {
-          btn.className = "text-xs px-2.5 py-1 rounded-full bg-stone-800 text-white font-medium pill-filter";
+          btn.className = "underline font-bold text-black pill-filter";
         } else {
-          btn.className = "text-xs px-2.5 py-1 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium pill-filter";
+          btn.className = "text-zinc-500 hover:text-black pill-filter";
         }
       });
       renderBookmarksList(tag);
@@ -712,90 +1735,116 @@
 
     function renderBookmarksList(filterTag = 'all') {
       const container = document.getElementById("bookmarksList");
-      const countLabel = document.getElementById("bookmarkCount");
-      countLabel.innerText = `${appData.bookmarks.length} 則`;
-
       const list = filterTag === 'all' 
         ? appData.bookmarks 
         : appData.bookmarks.filter(b => b.tags && b.tags.includes(filterTag));
 
       if (list.length === 0) {
-        container.innerHTML = `<p class="text-xs text-stone-400 text-center py-4">此情境下尚無收藏經文。</p>`;
+        container.innerHTML = `<p class="text-xs text-zinc-400 font-mono-swiss py-2">NO BOOKMARKS</p>`;
         return;
       }
 
       container.innerHTML = "";
       list.forEach(bm => {
         const item = document.createElement("div");
-        item.className = "p-3 rounded-xl border border-stone-200/80 hover:border-amber-300 bg-stone-50/50 transition space-y-1.5 relative group";
-        
-        const tagsBadge = bm.tags.map(t => `<span class="bg-amber-100/70 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-medium">${t}</span>`).join(" ");
+        item.className = "p-3 bg-white space-y-1 text-xs";
+        const tagsBadge = bm.tags.map(t => `<span class="text-[9px] font-mono-swiss uppercase text-zinc-500">[${t}]</span>`).join(" ");
 
         item.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="font-serif-tc font-bold text-xs text-stone-900">${bm.zhRef}</span>
-            <button onclick="deleteBookmark('${bm.id}')" class="text-stone-300 hover:text-rose-600 transition p-1">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <div class="flex items-baseline justify-between">
+            <span class="font-bold text-black cursor-pointer hover:underline" onclick="selectBookAndChapter(${bm.bookIndex}, ${bm.chapter})">${bm.zhRef}</span>
+            <button onclick="deleteBookmark('${bm.id}')" class="text-zinc-400 hover:text-black text-[10px] font-mono-swiss">
+              [DEL]
             </button>
           </div>
-          <p class="font-serif-tc text-xs text-stone-700 line-clamp-2 leading-relaxed">"${bm.text.replace(/\n/g, ' ').trim()}"</p>
+          <p class="font-serif-tc text-zinc-600 line-clamp-2 text-[11px] leading-relaxed">"${bm.text}"</p>
           <div class="flex items-center justify-between pt-1">
             <div class="flex flex-wrap gap-1">${tagsBadge}</div>
-            <span class="text-[10px] text-stone-400">${bm.createdAt}</span>
+            <span class="text-[9px] font-mono-swiss text-zinc-400">${bm.createdAt}</span>
           </div>
-          ${bm.customNote ? `<p class="text-[11px] text-stone-500 italic bg-white p-1.5 rounded border border-stone-100">筆記：${bm.customNote}</p>` : ''}
+          ${bm.customNote ? `<p class="text-[10px] text-zinc-500 italic bg-[#f7f7f6] p-1.5">${bm.customNote}</p>` : ''}
         `;
         container.appendChild(item);
       });
-      lucide.createIcons();
     }
 
-    /* ========================================================
-       7. 經文分享模組 (Share Card & Native Share)
-       ======================================================== */
-    function openShareModal() {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
-      const rawText = currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme;
-      
-      document.getElementById("shareTextContent").innerText = rawText.trim();
-      document.getElementById("shareRefContent").innerText = `—— ${planItem.zhRef}`;
-      document.getElementById("shareModal").classList.remove("hidden");
+    /* 單節註解筆記 */
+    function openNoteForSelected() {
+      if (selectedVerses.size === 0) return;
+      const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
+      openVerseNoteDialog(sorted[0]);
     }
 
-    function closeShareModal() {
-      document.getElementById("shareModal").classList.add("hidden");
+    function openVerseNoteDialog(verseNum) {
+      currentModalVerse = verseNum;
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+      const key = `${book.id}-${chapter}-${verseNum}`;
+
+      document.getElementById("verseNoteModalRef").innerText = `(${book.zh} ${chapter}章 ${verseNum}節 · NOTE)`;
+      const item = currentVersesData.find(i => i.verse === verseNum);
+      document.getElementById("verseNoteModalPreview").innerText = item ? `${item.verse}. ${item.zhText}` : "";
+      document.getElementById("singleVerseNoteInput").value = appData.verseNotes[key] || "";
+
+      document.getElementById("verseNoteModal").classList.remove("hidden");
     }
 
-    function getFormattedShareString() {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
-      const rawText = currentRawVerseData ? (currentRawVerseData.text || planItem.theme) : planItem.theme;
-      return `【靈修分享 · ${planItem.zhRef}】\n\n"${rawText.trim()}"\n\n主題：${planItem.theme}\n—— 靜沐靈光 每日靈修筆記`;
+    function closeVerseNoteModal() {
+      document.getElementById("verseNoteModal").classList.add("hidden");
+      currentModalVerse = null;
     }
 
-    function copyShareText() {
-      const text = getFormattedShareString();
-      navigator.clipboard.writeText(text).then(() => {
-        alert("已複製經文到剪貼簿，可直接傳送給親友！");
-      }).catch(err => {
-        console.error(err);
-      });
-    }
+    function saveSingleVerseNote() {
+      if (!currentModalVerse) return;
+      const book = BIBLE_BOOKS[appData.currentBookIndex];
+      const chapter = appData.currentChapter;
+      const key = `${book.id}-${chapter}-${currentModalVerse}`;
+      const text = document.getElementById("singleVerseNoteInput").value.trim();
 
-    function nativeShare() {
-      const planItem = DEVOTIONAL_PLAN.find(p => p.day === appData.currentDay);
-      const text = getFormattedShareString();
-      if (navigator.share) {
-        navigator.share({
-          title: `經文分享：${planItem.zhRef}`,
-          text: text
-        }).catch(err => console.log(err));
+      if (text) {
+        appData.verseNotes[key] = text;
       } else {
-        copyShareText();
+        delete appData.verseNotes[key];
       }
+
+      saveLocalData();
+      closeVerseNoteModal();
+      clearVerseSelection();
+    }
+
+    let noteDebounceTimer = null;
+    function handleNoteInput() {
+      const text = document.getElementById("dayNoteInput").value;
+      const key = `${appData.currentBookIndex}-${appData.currentChapter}`;
+      appData.notes[key] = text;
+      
+      const status = document.getElementById("noteSavedStatus");
+      status.innerText = "SAVING...";
+      
+      clearTimeout(noteDebounceTimer);
+      noteDebounceTimer = setTimeout(() => {
+        saveLocalData();
+        status.innerText = "SAVED";
+        setTimeout(() => {
+          status.innerText = "AUTO-SAVED";
+        }, 1500);
+      }, 700);
+    }
+
+    function changeFontSize(sizeClass) {
+      currentFontSize = sizeClass;
+      document.querySelectorAll(".font-size-btn").forEach(btn => {
+        if (btn.dataset.size === sizeClass) {
+          btn.className = "font-bold text-black font-size-btn";
+        } else {
+          btn.className = "hover:text-black font-size-btn text-zinc-400";
+        }
+      });
+      renderScriptureVerses();
     }
 
     /* ========================================================
-       8. Google OAuth 2.0 (GIS) 與 Drive AppData 雲端同步
+       8. Google Drive 同步 (GIS)
        ======================================================== */
     const DRIVE_FILE_NAME = "devotional_bible_data.json";
 
@@ -826,15 +1875,13 @@
             callback: (response) => {
               if (response.error) {
                 console.error("授權錯誤", response);
-                updateSyncUI(false, "登入授權失敗");
+                document.getElementById("syncText").innerText = "AUTH FAILED";
                 return;
               }
               accessToken = response.access_token;
-              updateSyncUI(true, "已連線至 Google 雲端");
-              document.getElementById("authBtnLabel").innerText = "已連結 Google";
+              document.getElementById("syncText").innerText = "GOOGLE DRIVE SYNCED";
               document.getElementById("disconnectBtn").classList.remove("hidden");
               closeAuthModal();
-              // Load from Google Drive AppData
               loadDataFromGoogleDrive();
             }
           });
@@ -847,10 +1894,9 @@
     function saveAndSignInGoogle() {
       const clientId = document.getElementById("clientIdInput").value.trim();
       if (!clientId) {
-        alert("請先輸入有效的 Google Client ID！");
+        alert("請輸入有效的 Client ID");
         return;
       }
-
       localStorage.setItem(CONFIG_KEY, JSON.stringify({ clientId }));
 
       if (window.google) {
@@ -863,54 +1909,29 @@
               return;
             }
             accessToken = response.access_token;
-            updateSyncUI(true, "已連線至 Google 雲端");
-            document.getElementById("authBtnLabel").innerText = "已連結 Google";
+            document.getElementById("syncText").innerText = "GOOGLE DRIVE SYNCED";
             document.getElementById("disconnectBtn").classList.remove("hidden");
             closeAuthModal();
             loadDataFromGoogleDrive();
           }
         });
         tokenClient.requestAccessToken({ prompt: "consent" });
-      } else {
-        alert("Google 登入套件尚在載入中，請稍候重試。");
       }
     }
 
     function disconnectGoogle() {
       accessToken = null;
       driveFileId = null;
-      updateSyncUI(false, "本地模式");
-      document.getElementById("authBtnLabel").innerText = "Google 連線設定";
+      document.getElementById("syncText").innerText = "LOCAL STORAGE";
       document.getElementById("disconnectBtn").classList.add("hidden");
       closeAuthModal();
-      alert("已中斷 Google 雲端同步。");
+      alert("已中斷雲端連線");
     }
 
-    function updateSyncUI(isConnected, text) {
-      const badge = document.getElementById("syncBadge");
-      const icon = document.getElementById("syncIcon");
-      const label = document.getElementById("syncText");
-
-      label.innerText = text;
-      if (isConnected) {
-        badge.className = "flex items-center text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full";
-        icon.setAttribute("data-lucide", "cloud");
-        icon.className = "w-3.5 h-3.5 mr-1 text-emerald-600";
-      } else {
-        badge.className = "flex items-center text-xs text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full";
-        icon.setAttribute("data-lucide", "cloud-off");
-        icon.className = "w-3.5 h-3.5 mr-1 text-stone-400";
-      }
-      lucide.createIcons();
-    }
-
-    /* 從 Google Drive AppData 讀取 JSON */
     async function loadDataFromGoogleDrive() {
       if (!accessToken) return;
-
       try {
-        updateSyncUI(true, "雲端資料下載中...");
-        // 1. Search for existing file in appDataFolder
+        document.getElementById("syncText").innerText = "SYNCING...";
         const query = encodeURIComponent("name = '" + DRIVE_FILE_NAME + "' and 'appDataFolder' in parents and trashed = false");
         const listResp = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name)`, {
           headers: { Authorization: `Bearer ${accessToken}` }
@@ -919,42 +1940,37 @@
 
         if (listData.files && listData.files.length > 0) {
           driveFileId = listData.files[0].id;
-          // 2. Fetch content
           const contentResp = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
             headers: { Authorization: `Bearer ${accessToken}` }
           });
           const cloudData = await contentResp.json();
-          // Merge with local data
           appData = Object.assign(appData, cloudData);
+          if (!appData.readRecords) appData.readRecords = {};
+          if (!appData.verseNotes) appData.verseNotes = {};
           saveLocalData();
-          renderDayButtons();
+          syncSelectPickers();
+          renderHistoryList();
           renderBookmarksList('all');
-          loadDayScripture(appData.currentDay);
-          updateSyncUI(true, "雲端資料已同步");
+          updateAllProgressUI();
+          updateChapterReadBtnState();
+          loadBilingualChapter(appData.currentBookIndex, appData.currentChapter);
+          document.getElementById("syncText").innerText = "GOOGLE DRIVE SYNCED";
         } else {
-          // File does not exist, upload current state as initial
           await uploadDataToGoogleDrive();
-          updateSyncUI(true, "雲端建立檔案完成");
+          document.getElementById("syncText").innerText = "DRIVE INITIALIZED";
         }
       } catch (err) {
         console.error("雲端讀取失敗", err);
-        updateSyncUI(true, "雲端讀取異常");
+        document.getElementById("syncText").innerText = "SYNC ERROR";
       }
     }
 
-    /* 上傳保存至 Google Drive AppData */
     async function uploadDataToGoogleDrive() {
       if (!accessToken) return;
-
       try {
         const fileContent = JSON.stringify(appData);
-        
         if (!driveFileId) {
-          // Create new file with multipart upload
-          const metadata = {
-            name: DRIVE_FILE_NAME,
-            parents: ["appDataFolder"]
-          };
+          const metadata = { name: DRIVE_FILE_NAME, parents: ["appDataFolder"] };
           const form = new FormData();
           form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
           form.append("file", new Blob([fileContent], { type: "application/json" }));
@@ -967,20 +1983,16 @@
           const data = await res.json();
           driveFileId = data.id;
         } else {
-          // Update existing file
           await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
             method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json"
-            },
+            headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
             body: fileContent
           });
         }
-        updateSyncUI(true, "已同步至雲端");
+        document.getElementById("syncText").innerText = "GOOGLE DRIVE SYNCED";
       } catch (err) {
         console.error("雲端上傳失敗", err);
-        updateSyncUI(true, "雲端同步失敗");
+        document.getElementById("syncText").innerText = "UPLOAD FAILED";
       }
     }
 
@@ -994,11 +2006,8 @@
     }
 
     function triggerManualSync() {
-      if (!accessToken) {
-        openAuthModal();
-      } else {
-        uploadDataToGoogleDrive();
-      }
+      if (!accessToken) openAuthModal();
+      else uploadDataToGoogleDrive();
     }
   </script>
 </body>
